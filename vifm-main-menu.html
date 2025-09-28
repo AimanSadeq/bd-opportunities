@@ -3,73 +3,727 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - File Needed</title>
+    <title>VIFM Business Development Portal - Dashboard</title>
+    
+    <!-- Add Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Google Fonts - Open Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            /* VIFM Brand Colors */
+            --vifm-primary: #010131;
+            --vifm-accent: #5391D5;
+            --vifm-dark: #111232;
+            --vifm-navy: #121140;
+            --vifm-off-white: #FEFFF9;
+            
+            /* Semantic Colors */
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --background: var(--vifm-off-white);
+            --surface: #ffffff;
+            --text: var(--vifm-dark);
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            
+            /* VIFM Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--vifm-primary) 0%, var(--vifm-navy) 100%);
+            --gradient-accent: linear-gradient(135deg, var(--vifm-accent) 0%, var(--vifm-primary) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
-            margin: 100px auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
             min-height: 100vh;
         }
-        .placeholder {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
+
+        /* Header Styles */
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(1, 1, 49, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        h1 { color: #dc2626; margin-bottom: 20px; }
-        .instruction-box {
-            background: #fef2f2;
-            border: 2px solid #dc2626;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .file-info {
-            background: #f3f4f6;
-            padding: 15px;
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .vifm-logo {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .logo-text-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text-main {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--vifm-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text-sub {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: var(--vifm-accent);
+            margin-top: -2px;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--vifm-primary);
+            font-size: 1rem;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            color: var(--vifm-accent);
+        }
+
+        .btn-logout {
+            padding: 0.5rem 1.25rem;
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
             border-radius: 8px;
-            margin: 15px 0;
-            text-align: left;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        code {
-            background: #fef3c7;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(83, 145, 213, 0.3);
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .welcome-banner {
+            background: var(--gradient-accent);
+            color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(83, 145, 213, 0.2);
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 30px rgba(1, 1, 49, 0.08);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(1, 1, 49, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-accent);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--vifm-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--vifm-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        /* Navigation Grid */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .nav-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(1, 1, 49, 0.1);
+            border: 1px solid var(--border);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-accent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .nav-card:not(.disabled):hover::before {
+            opacity: 0.05;
+        }
+
+        .nav-card:not(.disabled):hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(1, 1, 49, 0.2);
+            border-color: var(--vifm-accent);
+        }
+
+        .nav-card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 25px rgba(83, 145, 213, 0.3);
+        }
+
+        .nav-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--vifm-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-card-subtitle {
+            font-size: 0.875rem;
+            color: var(--vifm-accent);
+            font-weight: 500;
+        }
+
+        .nav-card-description {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .nav-card-action {
+            padding: 0.625rem 1.25rem;
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-card-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(83, 145, 213, 0.3);
+        }
+
+        .access-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: auto;
+        }
+
+        .badge-allowed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-restricted {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--gradient-primary);
+            color: var(--vifm-off-white);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .user-section {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .welcome-title {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="placeholder">
-        <h1>⚠️ vifm-main-menu.html File Needed</h1>
-        
-        <div class="instruction-box">
-            <h2>This is a placeholder file!</h2>
-            <p>You need to replace this with your actual <code>vifm-main-menu.html</code> file.</p>
+    <header>
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="vifm-logo.png" alt="VIFM Logo" class="vifm-logo" 
+                     onerror="this.style.display='none'; document.querySelector('.logo-text-container').style.display='block';">
+                <div class="logo-text-container" style="display: none;">
+                    <div class="logo-text-main">VIFM</div>
+                    <div class="logo-text-sub">Virginia Institute</div>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-role" id="userRole">...</div>
+                </div>
+                <button onclick="logout()" class="btn-logout">Sign Out</button>
+            </div>
         </div>
-        
-        <div class="file-info">
-            <h3>📄 File Details:</h3>
-            <ul>
-                <li><strong>File Name:</strong> vifm-main-menu.html</li>
-                <li><strong>Location:</strong> Document #9 in your files</li>
-                <li><strong>Size:</strong> ~25 KB</li>
-                <li><strong>Purpose:</strong> Main dashboard after login</li>
-            </ul>
+    </header>
+
+    <div class="dashboard">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <div class="welcome-title" id="welcomeMessage">Welcome back!</div>
+            <div class="welcome-subtitle" id="welcomeSubtitle">Select a module below to get started</div>
         </div>
-        
-        <div class="file-info">
-            <h3>🔄 How to Replace:</h3>
-            <ol>
-                <li>Copy the complete content of vifm-main-menu.html from Document #9</li>
-                <li>Replace this entire file with that content</li>
-                <li>Commit the change to GitHub</li>
-            </ol>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+            <!-- Stats will be dynamically loaded based on user role -->
+        </div>
+
+        <!-- Navigation Grid -->
+        <div class="nav-grid" id="navGrid">
+            <!-- Navigation cards will be dynamically loaded based on user role -->
         </div>
     </div>
+
+    <div class="footer">
+        <p>&copy; 2024 Virginia Institute of Finance and Management. All rights reserved.</p>
+    </div>
+
+    <script>
+        // ==================================================
+        // AUTHENTICATION & SESSION MANAGEMENT
+        // ==================================================
+        
+        const SUPABASE_URL = 'https://tdzwnqhuijdmqnzflvhz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkenducWh1aWpkbXFuemZsdmh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MDE1NDcsImV4cCI6MjA3NDM3NzU0N30.3JDWHIDhc3jgZS9Ul1QhnMkN0c3ey-dV96DHJxCO_H8';
+        
+        let supabase = null;
+        let currentUser = null;
+        
+        // Check authentication
+        function checkAuth() {
+            const sessionToken = localStorage.getItem('session_token');
+            const userData = localStorage.getItem('user_data');
+            
+            if (!sessionToken || !userData) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            currentUser = JSON.parse(userData);
+            return true;
+        }
+        
+        // Initialize Supabase
+        function initializeSupabase() {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                return true;
+            } catch (error) {
+                console.error('Error initializing Supabase:', error);
+                return false;
+            }
+        }
+        
+        // ==================================================
+        // USER INTERFACE FUNCTIONS
+        // ==================================================
+        
+        // Load user information
+        function loadUserInfo() {
+            document.getElementById('userName').textContent = currentUser.full_name;
+            document.getElementById('userRole').textContent = getRoleDisplay(currentUser.role);
+            
+            // Personalized welcome message
+            const hour = new Date().getHours();
+            let greeting = 'Good evening';
+            if (hour < 12) greeting = 'Good morning';
+            else if (hour < 18) greeting = 'Good afternoon';
+            
+            document.getElementById('welcomeMessage').textContent = `${greeting}, ${currentUser.full_name}!`;
+            document.getElementById('welcomeSubtitle').textContent = getRoleMessage(currentUser.role);
+        }
+        
+        // Get role display name
+        function getRoleDisplay(role) {
+            const roleNames = {
+                'consultant': 'Consultant',
+                'bd_prof': 'Business Development Professional',
+                'admin': 'Administrator',
+                'marketing': 'Marketing Team'
+            };
+            return roleNames[role] || 'User';
+        }
+        
+        // Get role-specific message
+        function getRoleMessage(role) {
+            const messages = {
+                'consultant': 'Track your training opportunities and client interactions',
+                'bd_prof': 'Manage your sales pipeline and BD opportunities',
+                'admin': 'Full system access and administration tools',
+                'marketing': 'View marketing data and campaign opportunities'
+            };
+            return messages[role] || 'Select a module below to get started';
+        }
+        
+        // Load statistics based on role
+        async function loadStats() {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            // Role-specific stats
+            if (currentUser.role === 'consultant') {
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">My Opportunities</div>
+                            <div class="stat-icon">📋</div>
+                        </div>
+                        <div class="stat-value" id="myOppCount">0</div>
+                        <div class="stat-change">Active opportunities</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">In Progress</div>
+                            <div class="stat-icon">⚡</div>
+                        </div>
+                        <div class="stat-value" id="inProgressCount">0</div>
+                        <div class="stat-change">Being worked on</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Completed</div>
+                            <div class="stat-icon">✅</div>
+                        </div>
+                        <div class="stat-value" id="completedCount">0</div>
+                        <div class="stat-change">Successfully closed</div>
+                    </div>
+                `;
+            } else if (currentUser.role === 'bd_prof') {
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Pipeline Value</div>
+                            <div class="stat-icon">💰</div>
+                        </div>
+                        <div class="stat-value" id="pipelineValue">0</div>
+                        <div class="stat-change">Total AED value</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Active Deals</div>
+                            <div class="stat-icon">🎯</div>
+                        </div>
+                        <div class="stat-value" id="activeDeals">0</div>
+                        <div class="stat-change">In pipeline</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Win Rate</div>
+                            <div class="stat-icon">🏆</div>
+                        </div>
+                        <div class="stat-value" id="winRate">0%</div>
+                        <div class="stat-change">Conversion rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">This Month</div>
+                            <div class="stat-icon">📈</div>
+                        </div>
+                        <div class="stat-value" id="monthlyWins">0</div>
+                        <div class="stat-change">Deals closed</div>
+                    </div>
+                `;
+            } else if (currentUser.role === 'admin') {
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Total Users</div>
+                            <div class="stat-icon">👥</div>
+                        </div>
+                        <div class="stat-value" id="totalUsers">0</div>
+                        <div class="stat-change">Active users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">All Opportunities</div>
+                            <div class="stat-icon">📊</div>
+                        </div>
+                        <div class="stat-value" id="totalOpps">0</div>
+                        <div class="stat-change">System-wide</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Revenue YTD</div>
+                            <div class="stat-icon">💵</div>
+                        </div>
+                        <div class="stat-value" id="revenueYTD">0</div>
+                        <div class="stat-change">Year to date</div>
+                    </div>
+                `;
+            }
+            
+            // Load actual stats from database (simplified for demo)
+            // In production, fetch real data from Supabase
+        }
+        
+        // Load navigation based on role
+        function loadNavigation() {
+            const navGrid = document.getElementById('navGrid');
+            let navHTML = '';
+            
+            // Common modules with role-based access
+            const modules = [
+    {
+        id: 'consultant-opportunities',
+        title: 'Consultant Opportunities',
+        subtitle: 'Track training opportunities',
+        description: 'Manage your training leads, client information, and follow-up actions',
+        icon: '🎯',
+        url: 'phase1.html',               // ← Fixed
+        allowedRoles: ['consultant', 'bd_prof', 'admin']
+    },
+    {
+        id: 'bd-module',
+        title: 'Business Development',
+        subtitle: 'Sales pipeline management',
+        description: 'Manage BD opportunities, pipeline stages, and revenue forecasting',
+        icon: '💼',
+        url: 'bd-module.html',            // ← Fixed
+        allowedRoles: ['bd_prof', 'admin']
+    },
+    // ... keep other modules as they are
+];
+            
+            modules.forEach(module => {
+                const hasAccess = module.allowedRoles.includes(currentUser.role);
+                navHTML += `
+                    <div class="nav-card ${!hasAccess ? 'disabled' : ''}" 
+                         ${hasAccess ? `onclick="navigateTo('${module.url}')"` : ''}>
+                        <div class="nav-card-content">
+                            <div class="nav-card-header">
+                                <div class="nav-card-icon">${module.icon}</div>
+                                <div>
+                                    <div class="nav-card-title">${module.title}</div>
+                                    <div class="nav-card-subtitle">${module.subtitle}</div>
+                                </div>
+                                <span class="access-badge ${hasAccess ? 'badge-allowed' : 'badge-restricted'}">
+                                    ${hasAccess ? 'Access' : 'No Access'}
+                                </span>
+                            </div>
+                            <div class="nav-card-description">${module.description}</div>
+                            ${hasAccess ? `<button class="nav-card-action">Open Module →</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            navGrid.innerHTML = navHTML;
+        }
+        
+        // Navigate to module
+        function navigateTo(url) {
+            window.location.href = url;
+        }
+        
+        // Logout
+        async function logout() {
+            if (confirm('Are you sure you want to sign out?')) {
+                // Clear session from database
+                const sessionToken = localStorage.getItem('session_token');
+                if (supabase && sessionToken) {
+                    await supabase
+                        .from('user_sessions')
+                        .delete()
+                        .eq('token', sessionToken);
+                }
+                
+                // Clear local storage
+                localStorage.removeItem('session_token');
+                localStorage.removeItem('user_data');
+                
+                // Redirect to login
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // ==================================================
+        // INITIALIZATION
+        // ==================================================
+        
+        window.onload = function() {
+            // Check authentication
+            if (!checkAuth()) {
+                return;
+            }
+            
+            // Initialize Supabase
+            if (!initializeSupabase()) {
+                alert('Failed to connect to database. Some features may not work.');
+            }
+            
+            // Load user interface
+            loadUserInfo();
+            loadStats();
+            loadNavigation();
+            
+            console.log('Dashboard loaded for:', currentUser.full_name, '(', currentUser.role, ')');
+        };
+    </script>
 </body>
 </html>
