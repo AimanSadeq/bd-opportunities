@@ -1,0 +1,25 @@
+run = "python3 -m http.server 3000"
+hidden = [".config"]
+modules = ["nodejs-20:v8-20230920-bd784b9", "python-3.10:v18-20230807-322e88b"]
+
+[nix]
+channel = "stable-23_05"
+
+[deployment]
+run = ["sh", "-c", "python3 -m http.server 3000"]
+deploymentTarget = "static"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[languages]
+
+[languages.html]
+pattern = "**/*.html"
+
+[languages.css]
+pattern = "**/*.css"
+
+[languages.javascript]
+pattern = "**/*.{js,jsx,ts,tsx}"

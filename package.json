@@ -1,0 +1,30 @@
+{
+  "name": "vifm-portal",
+  "version": "1.0.0",
+  "description": "Business Development Portal for Virginia Institute of Finance and Management",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 3000",
+    "dev": "python3 -m http.server 3000",
+    "test": "echo 'Open test-portal.html in browser to run tests'"
+  },
+  "keywords": [
+    "vifm",
+    "business-development",
+    "crm",
+    "portal",
+    "supabase"
+  ],
+  "author": "VIFM",
+  "license": "Proprietary",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/vifm-portal"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "homepage": "https://vifm-portal.repl.co"
+}
