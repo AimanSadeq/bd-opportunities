@@ -3,96 +3,587 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - File Needed</title>
+    <title>VIFM Portal - Login (Local Testing)</title>
+    
+    <!-- Google Fonts - Open Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            /* VIFM Brand Colors */
+            --vifm-primary: #010131;
+            --vifm-accent: #5391D5;
+            --vifm-dark: #111232;
+            --vifm-navy: #121140;
+            --vifm-off-white: #FEFFF9;
+            
+            /* Semantic Colors */
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --background: var(--vifm-off-white);
+            --surface: #ffffff;
+            --text: var(--vifm-dark);
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--vifm-primary) 0%, var(--vifm-navy) 100%);
+            --gradient-accent: linear-gradient(135deg, var(--vifm-accent) 0%, var(--vifm-primary) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
-            margin: 100px auto;
-            padding: 20px;
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text);
+            line-height: 1.6;
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .placeholder {
-            background: white;
-            padding: 40px;
+
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 70px);
+            pointer-events: none;
+        }
+
+        /* Login Container */
+        .login-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Login Card */
+        .login-card {
+            background: var(--surface);
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Card Header */
+        .card-header {
+            background: var(--gradient-primary);
+            padding: 2.5rem 2rem;
             text-align: center;
+            position: relative;
         }
-        h1 {
-            color: #dc2626;
-            margin-bottom: 20px;
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: var(--surface);
+            border-radius: 50% 50% 0 0;
         }
-        .instruction-box {
-            background: #fef2f2;
-            border: 2px solid #dc2626;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
-        .file-info {
-            background: #f3f4f6;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            text-align: left;
+
+        .vifm-logo {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
         }
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background: #5391D5;
+
+        .portal-title {
             color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
-        code {
+
+        .portal-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin-top: 0.5rem;
+        }
+
+        .local-badge {
+            display: inline-block;
             background: #fef3c7;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
+            color: #d97706;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        /* Card Body */
+        .card-body {
+            padding: 2.5rem 2rem 2rem;
+        }
+
+        .form-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--vifm-primary);
+            margin-bottom: 2rem;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--background);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--vifm-accent);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(83, 145, 213, 0.1);
+        }
+
+        .form-input.error {
+            border-color: var(--error);
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-accent);
+            color: white;
+            box-shadow: 0 4px 15px rgba(83, 145, 213, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(83, 145, 213, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Messages */
+        .message {
+            padding: 0.875rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #16a34a;
+            border-left: 4px solid #16a34a;
+        }
+
+        .message.info {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Demo Info */
+        .demo-info {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .demo-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--vifm-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .demo-users {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .demo-user {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .demo-user strong {
+            color: var(--vifm-accent);
+        }
+
+        .role-badge {
+            padding: 0.125rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .role-consultant {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .role-bd {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .role-admin {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card-body {
+                padding: 2rem 1.5rem 1.5rem;
+            }
+            
+            .portal-title {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="placeholder">
-        <h1>⚠️ login.html File Needed</h1>
-        
-        <div class="instruction-box">
-            <h2>This is a placeholder file!</h2>
-            <p>You need to replace this with your actual <code>login.html</code> file.</p>
+    <div class="background-pattern"></div>
+    
+    <div class="login-container">
+        <div class="login-card">
+            <div class="card-header">
+                <div class="logo-container">
+                    <img src="vifm-logo.png" alt="VIFM Logo" class="vifm-logo" 
+                         onerror="this.style.display='none'; document.getElementById('logoText').style.display='block';">
+                    <div id="logoText" style="display: none;">
+                        <div style="color: white; font-size: 2rem; font-weight: 800;">VIFM</div>
+                    </div>
+                    <div>
+                        <div class="portal-title">Business Development Portal</div>
+                        <div class="portal-subtitle">Virginia Institute of Finance & Management</div>
+                        <div class="local-badge">LOCAL TESTING MODE</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <h2 class="form-title">Sign In to Your Account</h2>
+                
+                <div id="messageArea"></div>
+                
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="email" class="form-input" 
+                               placeholder="your.email@vifm.ae" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="input-icon">
+                            <input type="password" id="password" class="form-input" 
+                                   placeholder="Enter your password" required>
+                            <i onclick="togglePassword()" style="cursor: pointer;">👁️</i>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="loginBtn" class="btn btn-primary">
+                        Sign In
+                    </button>
+                </form>
+                
+                <!-- Demo Users Info -->
+                <div class="demo-info">
+                    <div class="demo-title">🔐 Demo Credentials (For Testing)</div>
+                    <div class="demo-users">
+                        <div class="demo-user">
+                            <strong>aiman@vifm.ae</strong>
+                            <span class="role-badge role-consultant">Consultant</span>
+                        </div>
+                        <div class="demo-user">
+                            <strong>amal.kayed@vifm.ae</strong>
+                            <span class="role-badge role-bd">BD Prof</span>
+                        </div>
+                        <div class="demo-user">
+                            <strong>admin@vifm.ae</strong>
+                            <span class="role-badge role-admin">Admin</span>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-light);">
+                        Password for all demo users: <strong>password123</strong>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="file-info">
-            <h3>📄 File Details:</h3>
-            <ul style="text-align: left;">
-                <li><strong>File Name:</strong> login.html</li>
-                <li><strong>Location:</strong> Document #6 in your files</li>
-                <li><strong>Size:</strong> ~15 KB</li>
-                <li><strong>Purpose:</strong> User authentication page</li>
-            </ul>
-        </div>
-        
-        <div class="file-info">
-            <h3>🔄 How to Replace:</h3>
-            <ol style="text-align: left;">
-                <li>Copy the complete content of login.html from Document #6</li>
-                <li>In GitHub: Edit this file</li>
-                <li>Select all (Ctrl+A) and delete this placeholder</li>
-                <li>Paste your actual login.html content</li>
-                <li>Commit the change</li>
-            </ol>
-        </div>
-        
-        <div style="margin-top: 30px;">
-            <a href="test-portal.html" class="btn">Run System Test</a>
-            <a href="GITHUB_SETUP.md" class="btn" style="background: #dc2626;">View Setup Guide</a>
-        </div>
-        
-        <p style="margin-top: 20px; color: #6b7280;">
-            Once you replace this file, the login system will work properly.
-        </p>
     </div>
+    
+    <script>
+        // Local testing user database (no Supabase required)
+        const localUsers = {
+            'aiman@vifm.ae': {
+                id: 'user_1',
+                email: 'aiman@vifm.ae',
+                full_name: 'Aiman',
+                role: 'consultant',
+                password: 'password123'
+            },
+            'amal.kayed@vifm.ae': {
+                id: 'user_2',
+                email: 'amal.kayed@vifm.ae',
+                full_name: 'Amal Kayed',
+                role: 'bd_prof',
+                password: 'password123'
+            },
+            'admin@vifm.ae': {
+                id: 'user_3',
+                email: 'admin@vifm.ae',
+                full_name: 'Administrator',
+                role: 'admin',
+                password: 'password123'
+            },
+            'asadeq@viftraining.com': {
+                id: 'user_4',
+                email: 'asadeq@viftraining.com',
+                full_name: 'Asadeq',
+                role: 'consultant',
+                password: 'password123'
+            }
+        };
+        
+        // Handle login for local testing
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            // Validate input
+            if (!email || !password) {
+                showMessage('error', 'Please enter both email and password');
+                return;
+            }
+            
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner"></span> Signing in...';
+            
+            try {
+                // Check against local user database
+                const user = localUsers[email];
+                
+                if (!user || user.password !== password) {
+                    throw new Error('Invalid email or password');
+                }
+                
+                // Create session for local testing
+                const sessionToken = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                // Store session locally
+                localStorage.setItem('session_token', sessionToken);
+                localStorage.setItem('user_data', JSON.stringify({
+                    id: user.id,
+                    email: user.email,
+                    full_name: user.full_name,
+                    role: user.role
+                }));
+                
+                showMessage('success', 'Login successful! Redirecting...');
+                
+                // Redirect based on role
+                setTimeout(() => {
+                    redirectBasedOnRole(user.role);
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('error', error.message || 'Login failed. Please try again.');
+                
+                // Re-enable button
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'Sign In';
+            }
+        }
+        
+        // Redirect based on user role
+        function redirectBasedOnRole(role) {
+            switch(role) {
+                case 'consultant':
+                    window.location.href = 'phase1.html';
+                    break;
+                case 'bd_prof':
+                    window.location.href = 'bd-module.html';
+                    break;
+                case 'admin':
+                    window.location.href = 'vifm-main-menu.html';
+                    break;
+                default:
+                    window.location.href = 'vifm-main-menu.html';
+            }
+        }
+        
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+        }
+        
+        // Show message
+        function showMessage(type, message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.className = `message ${type}`;
+            messageArea.textContent = message;
+            messageArea.classList.remove('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageArea.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // Check if already logged in
+        window.onload = function() {
+            console.log('Local testing login page loaded');
+            
+            // Check if already logged in
+            const sessionToken = localStorage.getItem('session_token');
+            const userData = localStorage.getItem('user_data');
+            
+            if (sessionToken && userData) {
+                const user = JSON.parse(userData);
+                showMessage('info', 'You are already logged in. Redirecting...');
+                setTimeout(() => {
+                    redirectBasedOnRole(user.role);
+                }, 1000);
+                return;
+            }
+            
+            console.log('Local testing login system ready');
+        };
+    </script>
 </body>
 </html>
