@@ -3,73 +3,1538 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultant Module - File Needed</title>
+    <title>Consultant Opportunities - VIFM Portal</title>
+    
+    <!-- Add Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Google Fonts - Open Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+        /* Keep all existing styles from original file */
+        :root {
+            /* VIFM Brand Colors */
+            --vifm-primary: #010131;
+            --vifm-accent: #5391D5;
+            --vifm-dark: #111232;
+            --vifm-navy: #121140;
+            --vifm-off-white: #FEFFF9;
+            
+            /* Semantic Colors */
+            --primary: var(--vifm-accent);
+            --primary-dark: var(--vifm-primary);
+            --secondary: #64748b;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --background: var(--vifm-off-white);
+            --surface: #ffffff;
+            --text: var(--vifm-dark);
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
-            margin: 100px auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
             min-height: 100vh;
         }
-        .placeholder {
+
+        /* Header Styles */
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.625rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--vifm-primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .vifm-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .consultant-selector {
+            padding: 0.35rem 0.75rem;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.875rem;
             background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .consultant-selector:disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        /* Connection Status Indicator */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-offline {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-saving {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 1rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.75rem;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group label .required {
+            color: var(--error);
+            margin-left: 2px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            max-width: 100%;
+            padding: 0.45rem 0.75rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background: #f9fafb;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+            background-color: white;
+        }
+
+        .form-group input.error, .form-group select.error, .form-group textarea.error {
+            border-color: var(--error);
+        }
+
+        .error-text {
+            color: var(--error);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 440px 1fr;
+            gap: 1rem;
+            min-height: calc(100vh - 100px);
+        }
+
+        /* Left Panel - Add Opportunity Form */
+        .left-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0.625rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            height: fit-content;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            min-width: 420px;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 10px;
+            padding: 0.875rem;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .form-section {
+            margin-bottom: 1rem;
+            padding: 0.625rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Right Panel - Opportunities Table */
+        .right-panel {
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.825rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
             text-align: center;
         }
-        h1 { color: #dc2626; margin-bottom: 20px; }
-        .instruction-box {
-            background: #fef2f2;
-            border: 2px solid #dc2626;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
         }
-        .file-info {
-            background: #f3f4f6;
-            padding: 15px;
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+        }
+
+        .btn-primary:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.65rem;
+            margin-right: 0.25rem;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.65rem;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Messages */
+        .error-message {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            border-left: 3px solid #dc2626;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #16a34a;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            border-left: 3px solid #16a34a;
+        }
+
+        .info-message {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e40af;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .warning-message {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #d97706;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            border-left: 3px solid #f59e0b;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Debug Panel */
+        .debug-panel {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Table styles (simplified for now) */
+        .table-container {
+            flex: 1;
+            overflow: auto;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            margin: 15px 0;
-            text-align: left;
         }
-        code {
-            background: #fef3c7;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 1200px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 0.625rem 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        td {
+            padding: 0.5rem;
+            color: var(--text);
+            font-size: 0.75rem;
+            vertical-align: top;
+        }
+
+        .client-cell {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
         }
     </style>
 </head>
 <body>
-    <div class="placeholder">
-        <h1>⚠️ phase1.html File Needed</h1>
-        
-        <div class="instruction-box">
-            <h2>This is a placeholder file!</h2>
-            <p>You need to replace this with your actual <code>phase1.html</code> file.</p>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <button onclick="goBackToPortal()" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; margin-right: 1rem; background: var(--vifm-accent); color: white; border: none;">
+                    ← Back to Portal
+                </button>
+                <img src="vifm-logo.png" alt="VIFM Logo" class="vifm-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span style="display: none; font-weight: 700; color: var(--vifm-primary);">VIFM</span>
+                Consultant Opportunities Module
+                <span style="color: var(--vifm-accent); font-size: 0.8em; margin-left: 10px;">(SESSION-AWARE)</span>
+                <span id="connectionStatus" class="connection-status status-offline">
+                    <span class="status-dot"></span>
+                    <span id="connectionText">Connecting...</span>
+                </span>
+            </div>
+            <div class="user-info">
+                <label style="margin-right: 0.5rem; font-size: 0.875rem;">Current Consultant:</label>
+                <select id="consultantSelector" class="consultant-selector" onchange="saveConsultantName()">
+                    <option value="">Select Consultant</option>
+                    <option value="Aiman">Aiman</option>
+                    <option value="Mufid">Mufid</option>
+                    <option value="Ali">Ali</option>
+                    <option value="Omar">Omar</option>
+                    <option value="Amal">Amal</option>
+                    <option value="Ahmad">Ahmad</option>
+                    <option value="Ibrahim">Ibrahim</option>
+                    <option value="Yassin">Yassin</option>
+                    <option value="Ammar">Ammar</option>
+                    <option value="Moayad">Moayad</option>
+                </select>
+                <button onclick="testDatabaseConnection()" class="btn btn-info">Test Connection</button>
+                <button onclick="syncWithSupabase()" class="btn btn-info">Sync</button>
+                <button onclick="exportAllToCSV()" class="btn btn-secondary">Export All</button>
+            </div>
         </div>
-        
-        <div class="file-info">
-            <h3>📄 File Details:</h3>
-            <ul>
-                <li><strong>File Name:</strong> phase1.html</li>
-                <li><strong>Location:</strong> Document #7 (with session management)</li>
-                <li><strong>Size:</strong> ~35 KB</li>
-                <li><strong>Purpose:</strong> Consultant opportunities module</li>
-            </ul>
-        </div>
-        
-        <div class="file-info">
-            <h3>🔄 How to Replace:</h3>
-            <ol>
-                <li>Copy the complete content of phase1.html from Document #7</li>
-                <li>Replace this entire file with that content</li>
-                <li>Commit the change to GitHub</li>
-            </ol>
+    </header>
+
+    <div class="container">
+        <div class="dashboard">
+            <!-- Left Panel - Add/Edit Opportunity Form -->
+            <div class="left-panel">
+                <div class="form-container">
+                    <h3 class="panel-title" id="formTitle">New Opportunity Form</h3>
+                    <div id="formMessage" class="hidden"></div>
+                    
+                    <!-- Debug Info -->
+                    <div id="debugPanel" class="debug-panel hidden"></div>
+                    
+                    <!-- Course Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            📚 Course Information
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Course Title <span class="required">*</span></label>
+                                <input type="text" id="courseTitle" placeholder="Enter course title">
+                                <div class="error-text hidden" id="courseTitleError">Course title is required</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Course Date <span class="required">*</span></label>
+                                <input type="date" id="courseDate">
+                                <div class="error-text hidden" id="courseDateError">Course date is required</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Client <span class="required">*</span></label>
+                            <input type="text" id="client" placeholder="Enter client name">
+                            <div class="error-text hidden" id="clientError">Client is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            👤 Primary Contact Information
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Contact Name <span class="required">*</span></label>
+                                <input type="text" id="contactName" placeholder="Primary contact name">
+                                <div class="error-text hidden" id="contactNameError">Contact name is required</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Job Title <span class="required">*</span></label>
+                                <input type="text" id="contactTitle" placeholder="Job title">
+                                <div class="error-text hidden" id="contactTitleError">Job title is required</div>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="email" id="contactEmail" placeholder="email@company.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" id="contactPhone" placeholder="+971-XX-XXX-XXXX">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" id="city" placeholder="City">
+                        </div>
+                    </div>
+
+                    <!-- Opportunity Details Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            💼 Opportunity Details
+                        </div>
+                        <div class="info-message" style="margin-bottom: 0.75rem;">
+                            <strong>BD Handoff:</strong> Set status to "In Progress" or "Complete" for BD team to import this opportunity.
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Priority</label>
+                                <select id="priority">
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="status">
+                                    <option value="new">New (consultant working)</option>
+                                    <option value="in-progress">In Progress (ready for BD)</option>
+                                    <option value="complete">Complete (ready for BD)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Discussion / Notes</label>
+                            <textarea id="discussionNotes" rows="3" placeholder="Key points from discussion, specific needs identified..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Consultant Action</label>
+                            <textarea id="consultantAction" rows="2" placeholder="Follow-up actions for consultant..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>BD Action</label>
+                            <textarea id="bdAction" rows="2" placeholder="Actions for business development team..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button onclick="submitOpportunity()" class="btn btn-primary btn-full" id="submitBtn">
+                            Submit Opportunity
+                        </button>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button onclick="saveDraft()" class="btn btn-info btn-full">
+                            Save as Draft
+                        </button>
+                        <button onclick="resetForm()" class="btn btn-secondary btn-full">
+                            Clear Form
+                        </button>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button onclick="addTestOpportunity()" class="btn btn-warning btn-full">
+                            Add Test Data
+                        </button>
+                        <button onclick="toggleDebug()" class="btn btn-secondary btn-full">
+                            Toggle Debug Info
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" id="editingId" value="">
+                </div>
+            </div>
+
+            <!-- Right Panel - Opportunities Table -->
+            <div class="right-panel">
+                <h3 class="panel-title">Opportunities Database</h3>
+                
+                <!-- Simple Table Container -->
+                <div class="table-container">
+                    <table id="opportunitiesTable">
+                        <thead>
+                            <tr>
+                                <th>Course Title</th>
+                                <th>Client</th>
+                                <th>Contact</th>
+                                <th>Status</th>
+                                <th>Consultant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="6" class="no-data">
+                                    Loading opportunities...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        // ==================================================
+        // ENHANCED SUPABASE CONFIGURATION
+        // ==================================================
+        const SUPABASE_URL = 'https://tdzwnqhuijdmqnzflvhz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkenducWh1aWpkbXFuemZsdmh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MDE1NDcsImV4cCI6MjA3NDM3NzU0N30.3JDWHIDhc3jgZS9Ul1QhnMkN0c3ey-dV96DHJxCO_H8';
+        
+        // Global variables
+        let supabase = null;
+        let isOnline = false;
+        let opportunities = [];
+        let debugMode = false;
+
+        // ==================================================
+        // DEBUG AND LOGGING FUNCTIONS
+        // ==================================================
+        
+        function debugLog(message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            console.log(logEntry, data || '');
+            
+            if (debugMode) {
+                const debugPanel = document.getElementById('debugPanel');
+                debugPanel.classList.remove('hidden');
+                debugPanel.innerHTML += logEntry + (data ? ': ' + JSON.stringify(data, null, 2) : '') + '\n';
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugPanel = document.getElementById('debugPanel');
+            if (debugMode) {
+                debugPanel.classList.remove('hidden');
+                debugLog('Debug mode enabled');
+            } else {
+                debugPanel.classList.add('hidden');
+            }
+        }
+
+        function clearDebug() {
+            document.getElementById('debugPanel').innerHTML = '';
+        }
+
+        // ==================================================
+        // SESSION MANAGEMENT - NEW!
+        // ==================================================
+        
+        // Auto-detect logged-in user from session
+        function getLoggedInUser() {
+            // Check multiple sources for logged-in user
+            // 1. Check sessionStorage (set during login)
+            const sessionUser = sessionStorage.getItem('logged_in_user');
+            if (sessionUser) {
+                debugLog('👤 User detected from session:', sessionUser);
+                return sessionUser;
+            }
+            
+            // 2. Check URL parameters (if passed from login page)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUser = urlParams.get('user');
+            if (urlUser) {
+                debugLog('👤 User detected from URL:', urlUser);
+                sessionStorage.setItem('logged_in_user', urlUser);
+                return urlUser;
+            }
+            
+            // 3. Check localStorage for last known user
+            const storedUser = localStorage.getItem('current_consultant');
+            if (storedUser) {
+                debugLog('👤 User detected from localStorage:', storedUser);
+                return storedUser;
+            }
+            
+            // 4. For testing/development - auto-detect based on known users
+            // This simulates being logged in as Aiman
+            const isDevelopment = window.location.hostname === 'localhost' || 
+                                window.location.hostname === '127.0.0.1' ||
+                                window.location.protocol === 'file:';
+            
+            if (isDevelopment) {
+                debugLog('🔧 Development mode - auto-setting user as Aiman');
+                const defaultUser = 'Aiman';
+                sessionStorage.setItem('logged_in_user', defaultUser);
+                return defaultUser;
+            }
+            
+            debugLog('⚠️ No logged-in user detected');
+            return null;
+        }
+        
+        // Set consultant based on logged-in user
+        function setConsultantFromSession() {
+            const loggedInUser = getLoggedInUser();
+            const selector = document.getElementById('consultantSelector');
+            
+            if (!selector) return false;
+            
+            if (loggedInUser) {
+                // Find if the logged-in user is in the consultant list
+                const options = Array.from(selector.options);
+                const userOption = options.find(opt => opt.value === loggedInUser);
+                
+                if (userOption) {
+                    // Set the selector value
+                    selector.value = loggedInUser;
+                    
+                    // Make it read-only since user is authenticated
+                    selector.style.backgroundColor = '#e0f2fe';
+                    selector.style.border = '2px solid #0ea5e9';
+                    selector.disabled = true;
+                    
+                    // Add visual indicator
+                    const label = selector.previousElementSibling;
+                    if (label) {
+                        label.innerHTML = `Current Consultant: <span style="color: #0ea5e9; font-weight: 700;">✓ Auto-detected</span>`;
+                    }
+                    
+                    // Save to localStorage for backup
+                    localStorage.setItem('current_consultant', loggedInUser);
+                    
+                    debugLog('✅ Consultant auto-set to:', loggedInUser);
+                    showMessage('success', `✅ Logged in as: ${loggedInUser}`);
+                    return true;
+                } else {
+                    debugLog('⚠️ Logged-in user not found in consultant list:', loggedInUser);
+                    showMessage('warning', `User "${loggedInUser}" not found in consultant list. Please select manually.`);
+                }
+            } else {
+                // No logged-in user - show warning
+                showMessage('warning', '⚠️ Please select your consultant name from the dropdown');
+                selector.style.border = '2px solid #f59e0b';
+            }
+            
+            return false;
+        }
+
+        // ==================================================
+        // SUPABASE CONNECTION & INITIALIZATION
+        // ==================================================
+        
+        function initializeSupabase() {
+            try {
+                debugLog('Initializing Supabase client...');
+                
+                if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') {
+                    throw new Error('Supabase URL not configured');
+                }
+                
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                debugLog('✅ Supabase client initialized');
+                return true;
+            } catch (error) {
+                debugLog('❌ Error initializing Supabase', error);
+                updateConnectionStatus(false, 'Configuration error');
+                return false;
+            }
+        }
+
+        async function testDatabaseConnection() {
+            debugLog('🔄 Testing database connection...');
+            updateConnectionStatus('testing', 'Testing...');
+            
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+                
+                // Test connection with a simple query
+                const { data, error, count } = await supabase
+                    .from('opportunities')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (error) {
+                    debugLog('❌ Database connection failed', error);
+                    
+                    if (error.message.includes('relation "opportunities" does not exist')) {
+                        showMessage('warning', '⚠️ Table "opportunities" does not exist. Please create it in Supabase.');
+                        await showTableCreationSQL();
+                        return;
+                    }
+                    
+                    throw error;
+                }
+                
+                debugLog('✅ Database connection successful', { count });
+                updateConnectionStatus(true, 'Connected');
+                showMessage('success', `✅ Database connected! Found ${count || 0} existing opportunities.`);
+                
+                return true;
+                
+            } catch (error) {
+                debugLog('❌ Database test failed', error);
+                updateConnectionStatus(false, 'Connection failed');
+                showMessage('error', `❌ Connection failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function showTableCreationSQL() {
+            const tableSQL = `
+            -- Run this SQL in your Supabase dashboard SQL Editor:
+            
+            CREATE TABLE IF NOT EXISTS opportunities (
+                id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+                course_title TEXT NOT NULL,
+                client TEXT NOT NULL,
+                course_date DATE,
+                delegate_name TEXT,
+                delegate_title TEXT,
+                delegate_email TEXT,
+                phone_number TEXT,
+                city TEXT,
+                priority TEXT DEFAULT 'medium',
+                status TEXT DEFAULT 'new',
+                discussion_notes TEXT,
+                consultant_action TEXT,
+                bd_action TEXT,
+                consultant_name TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            );
+            
+            -- Enable Row Level Security (recommended)
+            ALTER TABLE opportunities ENABLE ROW LEVEL SECURITY;
+            
+            -- Create a policy to allow all operations (you can restrict this later)
+            CREATE POLICY "Allow all operations" ON opportunities FOR ALL USING (true);
+            `;
+            
+            debugLog('📋 Table creation SQL', tableSQL);
+            console.log('📋 TABLE CREATION SQL:\n', tableSQL);
+        }
+
+        function updateConnectionStatus(status, text = null) {
+            const statusEl = document.getElementById('connectionStatus');
+            const textEl = document.getElementById('connectionText');
+            
+            switch(status) {
+                case true:
+                    isOnline = true;
+                    statusEl.className = 'connection-status status-online';
+                    textEl.textContent = text || 'Online';
+                    break;
+                case 'testing':
+                    statusEl.className = 'connection-status status-saving';
+                    textEl.textContent = text || 'Testing...';
+                    break;
+                case false:
+                default:
+                    isOnline = false;
+                    statusEl.className = 'connection-status status-offline';
+                    textEl.textContent = text || 'Offline';
+                    break;
+            }
+        }
+
+        // ==================================================
+        // ENHANCED CRUD OPERATIONS
+        // ==================================================
+
+        async function saveOpportunityToSupabase(opportunity, isUpdate = false) {
+            debugLog('🔄 Saving opportunity to Supabase...', { isUpdate, opportunityId: opportunity.id });
+            
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+                
+                let result;
+                
+                if (isUpdate) {
+                    debugLog('🔄 Updating existing opportunity...');
+                    const { data, error } = await supabase
+                        .from('opportunities')
+                        .update({
+                            ...opportunity,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', opportunity.id)
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    result = data;
+                    debugLog('✅ Opportunity updated successfully', result);
+                    
+                } else {
+                    debugLog('➕ Creating new opportunity...');
+                    // Remove id for insert (let Supabase generate it)
+                    const { id, ...opportunityWithoutId } = opportunity;
+                    
+                    const { data, error } = await supabase
+                        .from('opportunities')
+                        .insert(opportunityWithoutId)
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    result = data;
+                    debugLog('✅ Opportunity created successfully', result);
+                }
+                
+                return result;
+                
+            } catch (error) {
+                debugLog('❌ Error saving to Supabase', error);
+                throw error;
+            }
+        }
+
+        async function loadOpportunities() {
+            debugLog('🔄 Loading opportunities from Supabase...');
+            
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+                
+                const { data, error } = await supabase
+                    .from('opportunities')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    debugLog('❌ Supabase query error', error);
+                    throw error;
+                }
+                
+                opportunities = data || [];
+                debugLog('✅ Successfully loaded opportunities', { count: opportunities.length });
+                
+                // Save to localStorage as backup
+                localStorage.setItem('training_opportunities_backup', JSON.stringify(opportunities));
+                
+                displayTable(opportunities);
+                updateConnectionStatus(true, 'Connected');
+                
+            } catch (error) {
+                debugLog('❌ Error loading from Supabase', error);
+                updateConnectionStatus(false, 'Loading from cache');
+                
+                // Fallback to localStorage
+                const backup = localStorage.getItem('training_opportunities_backup');
+                if (backup) {
+                    opportunities = JSON.parse(backup);
+                    displayTable(opportunities);
+                    debugLog('📦 Loaded from cache', { count: opportunities.length });
+                    showMessage('warning', 'Working offline - loaded from cache');
+                } else {
+                    debugLog('📭 No cached data available');
+                    showMessage('info', 'No data available. Create your first opportunity below.');
+                }
+            }
+        }
+
+        // ==================================================
+        // FORM OPERATIONS WITH ENHANCED VALIDATION
+        // ==================================================
+
+        async function submitOpportunity() {
+            debugLog('🔄 Submit opportunity button clicked');
+            clearDebug();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            
+            try {
+                // Validate form
+                if (!validateForm()) {
+                    debugLog('❌ Form validation failed');
+                    showMessage('error', 'Please fill in all required fields');
+                    return;
+                }
+
+                const consultantName = document.getElementById('consultantSelector').value;
+                if (!consultantName) {
+                    debugLog('❌ No consultant selected');
+                    showMessage('error', 'Please select a consultant name from the header');
+                    return;
+                }
+
+                debugLog('✅ Form validation passed');
+                await saveOpportunity('submitted');
+                
+            } catch (error) {
+                debugLog('❌ Error in submitOpportunity', error);
+                showMessage('error', 'Error submitting opportunity: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Opportunity';
+            }
+        }
+
+        async function saveOpportunity(saveStatus) {
+            debugLog('🔄 Starting save process...', { saveStatus });
+            updateConnectionStatus('testing', 'Saving...');
+            
+            try {
+                const editingId = document.getElementById('editingId').value;
+                const consultantName = document.getElementById('consultantSelector').value;
+                
+                // Build opportunity object
+                const opportunity = {
+                    course_title: document.getElementById('courseTitle').value.trim(),
+                    client: document.getElementById('client').value.trim(),
+                    course_date: document.getElementById('courseDate').value,
+                    delegate_name: document.getElementById('contactName').value.trim(),
+                    delegate_title: document.getElementById('contactTitle').value.trim(),
+                    delegate_email: document.getElementById('contactEmail').value || null,
+                    phone_number: document.getElementById('contactPhone').value || null,
+                    city: document.getElementById('city').value.trim() || null,
+                    priority: document.getElementById('priority').value,
+                    status: saveStatus === 'draft' ? 'draft' : document.getElementById('status').value,
+                    discussion_notes: document.getElementById('discussionNotes').value || null,
+                    consultant_action: document.getElementById('consultantAction').value || null,
+                    bd_action: document.getElementById('bdAction').value || null,
+                    consultant_name: consultantName
+                };
+                
+                if (editingId) {
+                    opportunity.id = editingId;
+                }
+                
+                debugLog('📋 Opportunity object created', opportunity);
+                
+                // Try to save to Supabase first
+                if (isOnline && supabase) {
+                    debugLog('🌐 Attempting to save to Supabase...');
+                    
+                    const savedOpp = await saveOpportunityToSupabase(opportunity, !!editingId);
+                    
+                    if (editingId) {
+                        const index = opportunities.findIndex(o => o.id === editingId);
+                        if (index !== -1) {
+                            opportunities[index] = savedOpp;
+                        }
+                        showMessage('success', '✅ Opportunity updated successfully in database!');
+                    } else {
+                        opportunities.unshift(savedOpp);
+                        showMessage('success', saveStatus === 'draft' ? 
+                            '✅ Draft saved to database!' : 
+                            '✅ Opportunity submitted successfully to database!');
+                    }
+                    
+                    // Also save to localStorage as backup
+                    localStorage.setItem('training_opportunities_backup', JSON.stringify(opportunities));
+                    
+                } else {
+                    debugLog('💾 Saving to localStorage (offline mode)...');
+                    
+                    // Offline mode - save to localStorage
+                    if (!opportunity.id) {
+                        opportunity.id = 'local_' + Date.now();
+                        opportunity.created_at = new Date().toISOString();
+                    }
+                    
+                    if (editingId) {
+                        const index = opportunities.findIndex(o => o.id === editingId);
+                        if (index !== -1) {
+                            opportunities[index] = opportunity;
+                        }
+                    } else {
+                        opportunities.unshift(opportunity);
+                    }
+                    
+                    localStorage.setItem('training_opportunities_backup', JSON.stringify(opportunities));
+                    showMessage('warning', '⚠️ Saved locally (offline mode). Will sync when online.');
+                }
+                
+                displayTable(opportunities);
+                updateConnectionStatus(true, 'Saved');
+                
+                if (saveStatus !== 'draft') {
+                    resetForm();
+                }
+                
+                debugLog('✅ Save operation completed successfully');
+                
+            } catch (error) {
+                debugLog('❌ Error in save operation', error);
+                updateConnectionStatus(false, 'Save failed');
+                
+                // Even if Supabase fails, try to save locally
+                debugLog('🔄 Attempting local backup save...');
+                try {
+                    const opportunity = {
+                        id: 'local_' + Date.now(),
+                        course_title: document.getElementById('courseTitle').value.trim(),
+                        client: document.getElementById('client').value.trim(),
+                        course_date: document.getElementById('courseDate').value,
+                        delegate_name: document.getElementById('contactName').value.trim(),
+                        delegate_title: document.getElementById('contactTitle').value.trim(),
+                        delegate_email: document.getElementById('contactEmail').value || null,
+                        phone_number: document.getElementById('contactPhone').value || null,
+                        city: document.getElementById('city').value.trim() || null,
+                        priority: document.getElementById('priority').value,
+                        status: saveStatus === 'draft' ? 'draft' : document.getElementById('status').value,
+                        discussion_notes: document.getElementById('discussionNotes').value || null,
+                        consultant_action: document.getElementById('consultantAction').value || null,
+                        bd_action: document.getElementById('bdAction').value || null,
+                        consultant_name: document.getElementById('consultantSelector').value,
+                        created_at: new Date().toISOString()
+                    };
+                    
+                    opportunities.unshift(opportunity);
+                    localStorage.setItem('training_opportunities_backup', JSON.stringify(opportunities));
+                    displayTable(opportunities);
+                    
+                    showMessage('warning', '⚠️ Database save failed, but saved locally as backup. Error: ' + error.message);
+                    debugLog('✅ Local backup save successful');
+                    
+                } catch (localError) {
+                    debugLog('❌ Local backup save also failed', localError);
+                    showMessage('error', '❌ Complete save failure: ' + error.message);
+                }
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const requiredFields = [
+                { id: 'courseTitle', errorId: 'courseTitleError' },
+                { id: 'courseDate', errorId: 'courseDateError' },
+                { id: 'client', errorId: 'clientError' },
+                { id: 'contactName', errorId: 'contactNameError' },
+                { id: 'contactTitle', errorId: 'contactTitleError' }
+            ];
+
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field.id);
+                const error = document.getElementById(field.errorId);
+                
+                if (!input || !input.value || !input.value.trim()) {
+                    if (input) input.classList.add('error');
+                    if (error) error.classList.remove('hidden');
+                    isValid = false;
+                    debugLog(`❌ Validation failed for field: ${field.id}`);
+                } else {
+                    input.classList.remove('error');
+                    if (error) error.classList.add('hidden');
+                }
+            });
+
+            return isValid;
+        }
+
+        // ==================================================
+        // DISPLAY AND UI FUNCTIONS
+        // ==================================================
+
+        function displayTable(data) {
+            const tableBody = document.getElementById('tableBody');
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data">
+                            No opportunities recorded yet. Add your first opportunity using the form on the left.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tableBody.innerHTML = data.map(opp => {
+                const isLocal = opp.id && opp.id.toString().startsWith('local_');
+                
+                return `
+                    <tr style="${isLocal ? 'background-color: #fef3c7;' : ''}">
+                        <td>${escapeHtml(opp.course_title)}</td>
+                        <td class="client-cell">${escapeHtml(opp.client)}</td>
+                        <td>
+                            ${opp.delegate_name ? `<strong>${escapeHtml(opp.delegate_name)}</strong><br>` : ''}
+                            ${opp.delegate_title ? `<small>${escapeHtml(opp.delegate_title)}</small>` : ''}
+                        </td>
+                        <td>
+                            <span style="padding: 0.15rem 0.4rem; border-radius: 10px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; background: ${getStatusColor(opp.status)};">
+                                ${opp.status === 'draft' ? 'DRAFT' : opp.status.replace('-', ' ')}${isLocal ? ' (LOCAL)' : ''}
+                            </span>
+                        </td>
+                        <td>${escapeHtml(opp.consultant_name) || '-'}</td>
+                        <td>
+                            <button onclick="editOpportunity('${opp.id}')" class="btn btn-warning">Edit</button>
+                            <button onclick="deleteOpportunity('${opp.id}')" class="btn btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'new': return '#e0e7ff; color: #4338ca; border: 1px solid #a5b4fc';
+                case 'in-progress': return '#fef3c7; color: #d97706; border: 1px solid #fcd34d';
+                case 'complete': return '#dcfce7; color: #166534; border: 1px solid #86efac';
+                case 'draft': return '#f3f4f6; color: #6b7280; border: 1px solid #d1d5db';
+                default: return '#f3f4f6; color: #6b7280; border: 1px solid #d1d5db';
+            }
+        }
+
+        function showMessage(type, message) {
+            const formMessage = document.getElementById('formMessage');
+            formMessage.textContent = message;
+            formMessage.className = type + '-message';
+            formMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                formMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        // ==================================================
+        // HELPER FUNCTIONS
+        // ==================================================
+
+        function resetForm() {
+            document.getElementById('editingId').value = '';
+            document.getElementById('formTitle').textContent = 'New Opportunity Form';
+            
+            // Clear all fields
+            const fields = ['courseTitle', 'client', 'contactName', 'contactTitle', 
+                          'contactEmail', 'contactPhone', 'city', 'discussionNotes', 
+                          'consultantAction', 'bdAction'];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.value = '';
+                    field.classList.remove('error');
+                }
+            });
+            
+            // Reset selects
+            document.getElementById('priority').value = 'medium';
+            document.getElementById('status').value = 'new';
+            
+            // Reset dates
+            setTodaysDate();
+            
+            // Clear error states
+            document.querySelectorAll('.error-text').forEach(el => el.classList.add('hidden'));
+            
+            clearDebug();
+        }
+
+        function setTodaysDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('courseDate').value = today;
+        }
+
+        function addTestOpportunity() {
+            const courses = ['Leadership Excellence', 'Project Management', 'Effective Communication', 'Strategic Planning'];
+            const clients = ['Tech Corp', 'Global Industries', 'Finance Solutions', 'Healthcare Plus'];
+            const names = ['Ahmed Al-Rashid', 'Fatima Al-Zahra', 'Omar Hassan', 'Layla Ahmad'];
+            const titles = ['HR Director', 'L&D Manager', 'Training Manager', 'VP Operations'];
+            
+            document.getElementById('courseTitle').value = courses[Math.floor(Math.random() * courses.length)];
+            document.getElementById('client').value = clients[Math.floor(Math.random() * clients.length)];
+            document.getElementById('contactName').value = names[Math.floor(Math.random() * names.length)];
+            document.getElementById('contactTitle').value = titles[Math.floor(Math.random() * titles.length)];
+            document.getElementById('contactEmail').value = 'test@example.com';
+            document.getElementById('contactPhone').value = '+971-50-' + Math.floor(Math.random() * 1000000);
+            document.getElementById('city').value = 'Dubai';
+            document.getElementById('discussionNotes').value = 'Test opportunity with sample data for testing purposes.';
+            document.getElementById('consultantAction').value = 'Follow up with detailed information';
+            document.getElementById('bdAction').value = 'Prepare pricing proposal';
+            
+            showMessage('info', 'Test data loaded - click Submit to save');
+        }
+
+        function saveConsultantName() {
+            const selector = document.getElementById('consultantSelector');
+            if (selector) {
+                localStorage.setItem('current_consultant', selector.value);
+                debugLog('💾 Consultant name saved', selector.value);
+            }
+        }
+
+        function loadConsultantName() {
+            const savedConsultant = localStorage.getItem('current_consultant');
+            const selector = document.getElementById('consultantSelector');
+            if (savedConsultant && selector) {
+                selector.value = savedConsultant;
+                debugLog('📋 Consultant name loaded', savedConsultant);
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return (text || '').toString().replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // ==================================================
+        // ADDITIONAL FUNCTIONS (SIMPLIFIED)
+        // ==================================================
+
+        async function saveDraft() {
+            const consultantName = document.getElementById('consultantSelector').value;
+            if (!consultantName) {
+                showMessage('error', 'Please select a consultant name from the header');
+                return;
+            }
+            await saveOpportunity('draft');
+        }
+
+        function editOpportunity(id) {
+            const opportunity = opportunities.find(o => o.id === id);
+            if (!opportunity) return;
+
+            document.getElementById('editingId').value = id;
+            document.getElementById('formTitle').textContent = 'Edit Opportunity';
+            
+            // Fill form
+            document.getElementById('courseTitle').value = opportunity.course_title || '';
+            document.getElementById('client').value = opportunity.client || '';
+            document.getElementById('contactName').value = opportunity.delegate_name || '';
+            document.getElementById('contactTitle').value = opportunity.delegate_title || '';
+            document.getElementById('contactEmail').value = opportunity.delegate_email || '';
+            document.getElementById('contactPhone').value = opportunity.phone_number || '';
+            document.getElementById('city').value = opportunity.city || '';
+            document.getElementById('priority').value = opportunity.priority || 'medium';
+            document.getElementById('status').value = opportunity.status === 'draft' ? 'new' : opportunity.status || 'new';
+            document.getElementById('discussionNotes').value = opportunity.discussion_notes || '';
+            document.getElementById('consultantAction').value = opportunity.consultant_action || '';
+            document.getElementById('bdAction').value = opportunity.bd_action || '';
+            
+            if (opportunity.course_date) {
+                document.getElementById('courseDate').value = opportunity.course_date;
+            }
+            
+            showMessage('info', 'Editing opportunity - make your changes and click Submit');
+        }
+
+        async function deleteOpportunity(id) {
+            if (!confirm('Are you sure you want to delete this opportunity?')) return;
+            
+            try {
+                if (isOnline && supabase && !id.startsWith('local_')) {
+                    await supabase.from('opportunities').delete().eq('id', id);
+                }
+                
+                opportunities = opportunities.filter(opp => opp.id !== id);
+                localStorage.setItem('training_opportunities_backup', JSON.stringify(opportunities));
+                displayTable(opportunities);
+                showMessage('success', 'Opportunity deleted');
+                
+            } catch (error) {
+                debugLog('❌ Error deleting opportunity', error);
+                showMessage('error', 'Error deleting: ' + error.message);
+            }
+        }
+
+        async function syncWithSupabase() {
+            showMessage('info', 'Syncing with Supabase...');
+            await loadOpportunities();
+            showMessage('success', '✅ Sync complete!');
+        }
+
+        function exportAllToCSV() {
+            if (opportunities.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            
+            const headers = ['Course Title', 'Client', 'Contact Name', 'Contact Title', 'Email', 'Phone', 
+                           'City', 'Priority', 'Status', 'Discussion Notes', 'Consultant Action', 
+                           'BD Action', 'Consultant Name', 'Created'];
+            
+            const csvContent = [
+                headers.join(','),
+                ...opportunities.map(opp => [
+                    `"${opp.course_title}"`,
+                    `"${opp.client}"`,
+                    `"${opp.delegate_name || ''}"`,
+                    `"${opp.delegate_title || ''}"`,
+                    `"${opp.delegate_email || ''}"`,
+                    `"${opp.phone_number || ''}"`,
+                    `"${opp.city || ''}"`,
+                    opp.priority,
+                    opp.status,
+                    `"${(opp.discussion_notes || '').replace(/"/g, '""')}"`,
+                    `"${(opp.consultant_action || '').replace(/"/g, '""')}"`,
+                    `"${(opp.bd_action || '').replace(/"/g, '""')}"`,
+                    `"${opp.consultant_name || ''}"`,
+                    opp.created_at || ''
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'training_opportunities_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function goBackToPortal() {
+            window.location.href = 'vifm-main-menu.html';
+        }
+
+        // ==================================================
+        // INITIALIZATION WITH SESSION DETECTION
+        // ==================================================
+
+        window.onload = async function() {
+            debugLog('🚀 Initializing Enhanced Consultant Opportunities System...');
+            
+            try {
+                // Set defaults
+                setTodaysDate();
+                
+                // Auto-detect and set consultant from session
+                const autoDetected = setConsultantFromSession();
+                
+                // If not auto-detected, try to load from localStorage
+                if (!autoDetected) {
+                    loadConsultantName();
+                }
+                
+                // Initialize Supabase
+                if (initializeSupabase()) {
+                    debugLog('✅ Supabase initialized, testing connection...');
+                    await testDatabaseConnection();
+                    await loadOpportunities();
+                } else {
+                    debugLog('❌ Supabase initialization failed, working offline');
+                    updateConnectionStatus(false, 'Offline mode');
+                    
+                    const backup = localStorage.getItem('training_opportunities_backup');
+                    if (backup) {
+                        opportunities = JSON.parse(backup);
+                        displayTable(opportunities);
+                        debugLog('📦 Loaded from localStorage backup', { count: opportunities.length });
+                    }
+                }
+                
+                debugLog('✅ Initialization complete');
+                
+            } catch (error) {
+                debugLog('❌ Initialization error', error);
+                updateConnectionStatus(false, 'Error');
+                showMessage('error', 'Initialization error: ' + error.message);
+            }
+        };
+    </script>
 </body>
 </html>

@@ -3,73 +3,1835 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BD Module - File Needed</title>
+    <title>Business Development - VIFM Portal</title>
+    
+    <!-- Add Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Google Fonts - Open Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            /* VIFM Brand Colors */
+            --vifm-primary: #010131;
+            --vifm-accent: #5391D5;
+            --vifm-dark: #111232;
+            --vifm-navy: #121140;
+            --vifm-off-white: #FEFFF9;
+            
+            /* Semantic Colors */
+            --primary: var(--vifm-accent);
+            --primary-dark: var(--vifm-primary);
+            --secondary: #64748b;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --background: var(--vifm-off-white);
+            --surface: #ffffff;
+            --text: var(--vifm-dark);
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
-            margin: 100px auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
             min-height: 100vh;
         }
-        .placeholder {
+
+        /* Header Styles */
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--vifm-primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .vifm-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .back-btn {
+            padding: 0.4rem 0.8rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: var(--primary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .bd-selector {
+            padding: 0.35rem 0.75rem;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.875rem;
             background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        /* Connection Status Indicator */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-offline {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 1rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.75rem;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group label .required {
+            color: var(--error);
+            margin-left: 2px;
+        }
+
+        .form-group input[list], .form-group select, .form-group textarea, .form-group input[type="text"], 
+        .form-group input[type="email"], .form-group input[type="tel"], .form-group input[type="date"], 
+        .form-group input[type="number"] {
+            width: 100%;
+            max-width: 100%;
+            padding: 0.45rem 0.75rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background: #f9fafb;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+            background-color: white;
+        }
+
+        .form-group input.error, .form-group select.error, .form-group textarea.error {
+            border-color: var(--error);
+        }
+
+        .error-text {
+            color: var(--error);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 440px 1fr;
+            gap: 1rem;
+            min-height: calc(100vh - 100px);
+        }
+
+        /* Left Panel - BD Form */
+        .left-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0.625rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            height: fit-content;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            min-width: 420px;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 10px;
+            padding: 0.875rem;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .form-section {
+            margin-bottom: 1rem;
+            padding: 0.625rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Right Panel - BD Pipeline Table */
+        .right-panel {
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Pipeline Stages */
+        .pipeline-stages {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pipeline-stage {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .pipeline-stage.active {
+            border-color: var(--primary);
+            background: #f0f9ff;
+        }
+
+        .stage-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .stage-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Search and Filter Section */
+        .search-section {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            align-items: end;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.4rem 0.75rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.825rem;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Table Styles */
+        .table-container {
+            flex: 1;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 1500px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 0.625rem 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        td {
+            padding: 0.5rem;
+            color: var(--text);
+            font-size: 0.75rem;
+            vertical-align: top;
+        }
+
+        .client-cell {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-qualified {
+            background: #e0e7ff;
+            color: #4338ca;
+            border: 1px solid #a5b4fc;
+        }
+
+        .status-proposal {
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fcd34d;
+        }
+
+        .status-negotiation {
+            background: #fed7aa;
+            color: #ea580c;
+            border: 1px solid #fdba74;
+        }
+
+        .status-closed-won {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .status-closed-lost {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        /* Revenue Badges */
+        .revenue-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.825rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
             text-align: center;
         }
-        h1 { color: #dc2626; margin-bottom: 20px; }
-        .instruction-box {
-            background: #fef2f2;
-            border: 2px solid #dc2626;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
         }
-        .file-info {
-            background: #f3f4f6;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            text-align: left;
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
         }
-        code {
-            background: #fef3c7;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.65rem;
+            margin-right: 0.25rem;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.65rem;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Messages */
+        .error-message {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            border-left: 3px solid #dc2626;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #16a34a;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            border-left: 3px solid #16a34a;
+        }
+
+        .info-message {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e40af;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Import Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .left-panel {
+                max-width: 600px;
+                min-width: auto;
+                margin: 0 auto;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline-stages {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid, .form-grid-3 {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="placeholder">
-        <h1>⚠️ bd-module.html File Needed</h1>
-        
-        <div class="instruction-box">
-            <h2>This is a placeholder file!</h2>
-            <p>You need to replace this with your actual <code>bd-module.html</code> file.</p>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="vifm-main-menu.html" class="back-btn">
+                    ← Back to Portal
+                </a>
+                <img src="vifm-logo.png" alt="VIFM Logo" class="vifm-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span style="display: none; font-weight: 700; color: var(--vifm-primary);">VIFM</span>
+                Business Development Module
+                <span style="color: var(--vifm-accent); font-size: 0.8em; margin-left: 10px;">(SUPABASE CONNECTED)</span>
+                <span id="connectionStatus" class="connection-status status-offline">
+                    <span class="status-dot"></span>
+                    <span id="connectionText">Connecting...</span>
+                </span>
+            </div>
+            <div class="user-info">
+                <label style="margin-right: 0.5rem; font-size: 0.875rem;">BD Professional:</label>
+                <select id="bdSelector" class="bd-selector" onchange="saveBDName()">
+                    <option value="">Select BD Prof</option>
+                    <option value="Amal Kayed">Amal Kayed</option>
+                    <option value="Wael Ghosheh">Wael Ghosheh</option>
+                </select>
+                <button onclick="importFromConsultants()" class="btn btn-info">Import Opportunities</button>
+                <button onclick="exportBDData()" class="btn btn-secondary">Export BD Data</button>
+                <button onclick="syncWithSupabase()" class="btn btn-success">Sync</button>
+            </div>
         </div>
-        
-        <div class="file-info">
-            <h3>📄 File Details:</h3>
-            <ul>
-                <li><strong>File Name:</strong> bd-module.html</li>
-                <li><strong>Location:</strong> Document #5 (with auto-detection patch)</li>
-                <li><strong>Size:</strong> ~40 KB</li>
-                <li><strong>Purpose:</strong> Business development module</li>
-            </ul>
+    </header>
+
+    <div class="container">
+        <!-- Pipeline Overview -->
+        <div class="pipeline-stages">
+            <div class="pipeline-stage">
+                <div class="stage-title">Qualified</div>
+                <div class="stage-count" id="qualifiedCount">0</div>
+            </div>
+            <div class="pipeline-stage">
+                <div class="stage-title">Proposal</div>
+                <div class="stage-count" id="proposalCount">0</div>
+            </div>
+            <div class="pipeline-stage">
+                <div class="stage-title">Negotiation</div>
+                <div class="stage-count" id="negotiationCount">0</div>
+            </div>
+            <div class="pipeline-stage">
+                <div class="stage-title">Closed Won</div>
+                <div class="stage-count" id="wonCount">0</div>
+            </div>
+            <div class="pipeline-stage">
+                <div class="stage-title">Closed Lost</div>
+                <div class="stage-count" id="lostCount">0</div>
+            </div>
         </div>
-        
-        <div class="file-info">
-            <h3>🔄 How to Replace:</h3>
-            <ol>
-                <li>Copy the complete content of bd-module.html from Document #5</li>
-                <li>Replace this entire file with that content</li>
-                <li>Commit the change to GitHub</li>
-            </ol>
+
+        <div class="dashboard">
+            <!-- Left Panel - BD Opportunity Form -->
+            <div class="left-panel">
+                <div class="form-container">
+                    <h3 class="panel-title" id="formTitle">New BD Opportunity</h3>
+                    <div id="formMessage" class="hidden"></div>
+                    
+                    <!-- Import Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <svg class="section-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                            </svg>
+                            Import from Consultants
+                        </div>
+                        <div class="form-group">
+                            <label>Source Opportunity</label>
+                            <select id="sourceOpportunity" onchange="importOpportunityData()">
+                                <option value="">Select opportunity to import... (shows complete & in-progress)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <svg class="section-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Opportunity Details
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Course Title <span class="required">*</span></label>
+                                <input type="text" id="courseTitle" placeholder="Training program" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Client <span class="required">*</span></label>
+                                <input type="text" id="client" placeholder="Client organization" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Originating Consultant <span class="required">*</span></label>
+                            <input type="text" id="consultantName" placeholder="Which consultant started this opportunity" readonly>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Primary Contact</label>
+                                <input type="text" id="primaryContact" placeholder="Main decision maker">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Title</label>
+                                <input type="text" id="contactTitle" placeholder="Job title">
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="contactEmail" placeholder="contact@company.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" id="contactPhone" placeholder="+971-XX-XXX-XXXX">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <svg class="section-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Sales Details
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Estimated Budget (AED)</label>
+                                <input type="number" id="estimatedBudget" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Pipeline Stage <span class="required">*</span></label>
+                                <select id="pipelineStage">
+                                    <option value="qualified">Qualified</option>
+                                    <option value="proposal">Proposal</option>
+                                    <option value="negotiation">Negotiation</option>
+                                    <option value="closed-won">Closed Won</option>
+                                    <option value="closed-lost">Closed Lost</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Probability (%)</label>
+                                <input type="number" id="probability" min="0" max="100" value="25">
+                            </div>
+                            <div class="form-group">
+                                <label>Expected Close Date</label>
+                                <input type="date" id="expectedCloseDate">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Competitors</label>
+                            <input type="text" id="competitors" placeholder="Known competing companies">
+                        </div>
+                    </div>
+
+                    <!-- Notes Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <svg class="section-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            Notes & Actions
+                        </div>
+                        <div class="form-group">
+                            <label>BD Notes</label>
+                            <textarea id="bdNotes" rows="3" placeholder="Sales notes, client requirements, meeting outcomes..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Next Actions</label>
+                            <textarea id="nextActions" rows="2" placeholder="Follow-up actions, next steps..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button onclick="submitBDOpportunity()" class="btn btn-primary btn-full">
+                            Save BD Opportunity
+                        </button>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button onclick="resetBDForm()" class="btn btn-secondary btn-full">
+                            Clear Form
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" id="editingBDId" value="">
+                    <input type="hidden" id="sourceOpportunityId" value="">
+                </div>
+            </div>
+
+            <!-- Right Panel - BD Opportunities Table -->
+            <div class="right-panel">
+                <h3 class="panel-title">BD Pipeline</h3>
+
+                <!-- Search and Filter Section -->
+                <div class="search-section">
+                    <div class="search-grid">
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">Client</label>
+                            <input type="text" id="searchClient" class="search-input" placeholder="Search client..." onkeyup="filterBDTable()">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">Consultant</label>
+                            <input type="text" id="filterConsultant" class="search-input" placeholder="Consultant name..." onkeyup="filterBDTable()">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">Stage</label>
+                            <select id="filterStage" class="search-input" onchange="filterBDTable()">
+                                <option value="">All Stages</option>
+                                <option value="qualified">Qualified</option>
+                                <option value="proposal">Proposal</option>
+                                <option value="negotiation">Negotiation</option>
+                                <option value="closed-won">Closed Won</option>
+                                <option value="closed-lost">Closed Lost</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">BD Prof</label>
+                            <input type="text" id="filterBDProf" class="search-input" placeholder="BD professional..." onkeyup="filterBDTable()">
+                        </div>
+                    </div>
+                    <div style="margin-top: 0.75rem;">
+                        <button onclick="clearBDFilters()" class="btn btn-secondary" style="width: 100%;">Clear All Filters</button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="table-container">
+                    <table id="bdTable">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Course</th>
+                                <th>Consultant</th>
+                                <th>Contact</th>
+                                <th>Budget (AED)</th>
+                                <th>Stage</th>
+                                <th>Probability</th>
+                                <th>Expected Close</th>
+                                <th>BD Prof</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bdTableBody">
+                            <tr>
+                                <td colspan="9" class="no-data">
+                                    Loading BD opportunities...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Import Consultant Opportunities</h3>
+                <button class="modal-close" onclick="closeImportModal()">&times;</button>
+            </div>
+            <div id="importModalBody">
+                <p>Loading available opportunities...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================================================
+        // SUPABASE CONFIGURATION
+        // ==================================================
+        const SUPABASE_URL = 'https://tdzwnqhuijdmqnzflvhz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkenducWh1aWpkbXFuemZsdmh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MDE1NDcsImV4cCI6MjA3NDM3NzU0N30.3JDWHIDhc3jgZS9Ul1QhnMkN0c3ey-dV96DHJxCO_H8';
+        
+        // Initialize Supabase client
+        let supabase = null;
+        let isOnline = false;
+        let bdOpportunities = [];
+        let consultantOpportunities = [];
+
+        // ==================================================
+        // INITIALIZATION AND CONNECTION
+        // ==================================================
+        
+        function initializeSupabase() {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase client initialized for BD module');
+                return true;
+            } catch (error) {
+                console.error('Error initializing Supabase:', error);
+                updateConnectionStatus(false, 'Connection error');
+                return false;
+            }
+        }
+
+        // Update connection status indicator
+        function updateConnectionStatus(online, text = null) {
+            isOnline = online;
+            const statusEl = document.getElementById('connectionStatus');
+            const textEl = document.getElementById('connectionText');
+            
+            if (online) {
+                statusEl.className = 'connection-status status-online';
+                textEl.textContent = text || 'Online';
+            } else {
+                statusEl.className = 'connection-status status-offline';
+                textEl.textContent = text || 'Offline';
+            }
+        }
+
+        // Check database schema for required columns
+        async function checkDatabaseSchema() {
+            try {
+                if (!supabase) return;
+                
+                // Update schema check to look for bd_prof column instead of consultant_name
+                const { data, error } = await supabase
+                    .from('bd_opportunities')
+                    .select('bd_prof')
+                    .limit(1);
+                
+                if (error && error.message.includes('bd_prof')) {
+                    showMessage('warning', '⚠️ Database Schema Issue: Missing bd_prof column. Please check the setup instructions.');
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.log('Schema check failed:', error);
+                return false;
+            }
+        }
+
+        // Check Supabase connection
+        async function checkConnection() {
+            if (!supabase) return false;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('bd_opportunities')
+                    .select('count', { count: 'exact', head: true });
+                
+                updateConnectionStatus(true);
+                
+                // Also check schema
+                await checkDatabaseSchema();
+                
+                return true;
+            } catch (error) {
+                console.error('Connection check failed:', error);
+                updateConnectionStatus(false);
+                return false;
+            }
+        }
+
+        // ==================================================
+        // DATABASE OPERATIONS
+        // ==================================================
+
+        // Create BD opportunities table if it doesn't exist
+        async function ensureBDTable() {
+            try {
+                // Try to create the table through a simple query
+                // Note: In a real implementation, you'd run this SQL in Supabase dashboard:
+                /*
+                CREATE TABLE IF NOT EXISTS bd_opportunities (
+                    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+                    source_opportunity_id UUID,
+                    course_title TEXT NOT NULL,
+                    client TEXT NOT NULL,
+                    consultant_name TEXT,
+                    primary_contact TEXT,
+                    contact_title TEXT,
+                    contact_email TEXT,
+                    contact_phone TEXT,
+                    estimated_budget DECIMAL,
+                    pipeline_stage TEXT NOT NULL DEFAULT 'qualified',
+                    probability INTEGER DEFAULT 25,
+                    expected_close_date DATE,
+                    competitors TEXT,
+                    bd_notes TEXT,
+                    next_actions TEXT,
+                    bd_prof TEXT,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                */
+                console.log('BD table should be created in Supabase dashboard with bd_prof column');
+                return true;
+            } catch (error) {
+                console.error('Error ensuring BD table:', error);
+                return false;
+            }
+        }
+
+        // Load BD opportunities
+        async function loadBDOpportunities() {
+            try {
+                if (!supabase) throw new Error('Supabase not initialized');
+                
+                const { data, error } = await supabase
+                    .from('bd_opportunities')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                bdOpportunities = data || [];
+                console.log('Loaded', bdOpportunities.length, 'BD opportunities');
+                
+                displayBDTable(bdOpportunities);
+                updatePipelineStats();
+                updateConnectionStatus(true);
+                
+            } catch (error) {
+                console.error('Error loading BD opportunities:', error);
+                updateConnectionStatus(false);
+                // Try to load from localStorage backup
+                const backup = localStorage.getItem('bd_opportunities_backup');
+                if (backup) {
+                    bdOpportunities = JSON.parse(backup);
+                    displayBDTable(bdOpportunities);
+                    updatePipelineStats();
+                }
+            }
+        }
+
+        // Load consultant opportunities for import
+        async function loadConsultantOpportunities() {
+            try {
+                if (!supabase) throw new Error('Supabase not initialized');
+                
+                const { data, error } = await supabase
+                    .from('opportunities')
+                    .select('*')
+                    .in('status', ['complete', 'in-progress'])
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                consultantOpportunities = data || [];
+                console.log('Loaded', consultantOpportunities.length, 'consultant opportunities for import (complete & in-progress)');
+                
+                updateSourceOpportunityDropdown();
+                
+            } catch (error) {
+                console.error('Error loading consultant opportunities:', error);
+                const backup = localStorage.getItem('training_opportunities_backup');
+                if (backup) {
+                    const allOpportunities = JSON.parse(backup);
+                    consultantOpportunities = allOpportunities.filter(o => 
+                        o.status === 'complete' || o.status === 'in-progress'
+                    );
+                    updateSourceOpportunityDropdown();
+                }
+            }
+        }
+
+        // Save BD opportunity
+        async function saveBDOpportunity(bdOpp, isUpdate = false) {
+            try {
+                if (!supabase) throw new Error('Supabase not initialized');
+                
+                let result;
+                
+                if (isUpdate) {
+                    const { data, error } = await supabase
+                        .from('bd_opportunities')
+                        .update({ ...bdOpp, updated_at: new Date().toISOString() })
+                        .eq('id', bdOpp.id)
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    result = data;
+                } else {
+                    const { id, ...bdOppWithoutId } = bdOpp;
+                    
+                    const { data, error } = await supabase
+                        .from('bd_opportunities')
+                        .insert(bdOppWithoutId)
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    result = data;
+                }
+                
+                return result;
+                
+            } catch (error) {
+                console.error('Error saving BD opportunity:', error);
+                throw error;
+            }
+        }
+
+        // ==================================================
+        // UI FUNCTIONS
+        // ==================================================
+
+        // Update source opportunity dropdown
+        function updateSourceOpportunityDropdown() {
+            const dropdown = document.getElementById('sourceOpportunity');
+            dropdown.innerHTML = '<option value="">Select opportunity to import... (showing complete & in-progress)</option>';
+            
+            consultantOpportunities.forEach(opp => {
+                const option = document.createElement('option');
+                option.value = opp.id;
+                option.textContent = `${opp.client} - ${opp.course_title} (${opp.delegate_name}) [${opp.status.toUpperCase()}]`;
+                dropdown.appendChild(option);
+            });
+        }
+
+        // Import opportunity data
+        function importOpportunityData() {
+            const sourceId = document.getElementById('sourceOpportunity').value;
+            if (!sourceId) return;
+            
+            const sourceOpp = consultantOpportunities.find(o => o.id === sourceId);
+            if (!sourceOpp) return;
+            
+            // Fill form with imported data
+            document.getElementById('sourceOpportunityId').value = sourceId;
+            document.getElementById('courseTitle').value = sourceOpp.course_title || '';
+            document.getElementById('client').value = sourceOpp.client || '';
+            document.getElementById('consultantName').value = sourceOpp.consultant_name || '';
+            document.getElementById('primaryContact').value = sourceOpp.delegate_name || '';
+            document.getElementById('contactTitle').value = sourceOpp.delegate_title || '';
+            document.getElementById('contactEmail').value = sourceOpp.delegate_email || '';
+            document.getElementById('contactPhone').value = sourceOpp.phone_number || '';
+            
+            showMessage('success', 'Opportunity data imported successfully!');
+        }
+
+        // Submit BD opportunity
+        async function submitBDOpportunity() {
+            if (!validateBDForm()) {
+                showMessage('error', 'Please fill in all required fields');
+                return;
+            }
+
+            const bdProf = document.getElementById('bdSelector').value;
+            if (!bdProf) {
+                showMessage('error', 'Please select a BD professional');
+                return;
+            }
+
+            const editingId = document.getElementById('editingBDId').value;
+            
+            const bdOpp = {
+                source_opportunity_id: document.getElementById('sourceOpportunityId').value || null,
+                course_title: document.getElementById('courseTitle').value.trim(),
+                client: document.getElementById('client').value.trim(),
+                consultant_name: document.getElementById('consultantName').value.trim() || null,
+                primary_contact: document.getElementById('primaryContact').value.trim() || null,
+                contact_title: document.getElementById('contactTitle').value.trim() || null,
+                contact_email: document.getElementById('contactEmail').value || null,
+                contact_phone: document.getElementById('contactPhone').value || null,
+                estimated_budget: document.getElementById('estimatedBudget').value ? parseFloat(document.getElementById('estimatedBudget').value) : null,
+                pipeline_stage: document.getElementById('pipelineStage').value,
+                probability: parseInt(document.getElementById('probability').value) || 25,
+                expected_close_date: document.getElementById('expectedCloseDate').value || null,
+                competitors: document.getElementById('competitors').value || null,
+                bd_notes: document.getElementById('bdNotes').value || null,
+                next_actions: document.getElementById('nextActions').value || null,
+                bd_prof: bdProf
+            };
+            
+            if (editingId) {
+                bdOpp.id = editingId;
+            }
+            
+            try {
+                if (isOnline && supabase) {
+                    const savedOpp = await saveBDOpportunity(bdOpp, !!editingId);
+                    
+                    if (editingId) {
+                        const index = bdOpportunities.findIndex(o => o.id === editingId);
+                        if (index !== -1) {
+                            bdOpportunities[index] = savedOpp;
+                        }
+                        showMessage('success', '✔ BD Opportunity updated successfully!');
+                    } else {
+                        bdOpportunities.unshift(savedOpp);
+                        showMessage('success', '✔ BD Opportunity created successfully!');
+                    }
+                } else {
+                    // Offline mode
+                    if (!bdOpp.id) {
+                        bdOpp.id = 'bd_local_' + Date.now();
+                    }
+                    
+                    if (editingId) {
+                        const index = bdOpportunities.findIndex(o => o.id === editingId);
+                        if (index !== -1) {
+                            bdOpportunities[index] = bdOpp;
+                        }
+                    } else {
+                        bdOpportunities.unshift(bdOpp);
+                    }
+                    
+                    localStorage.setItem('bd_opportunities_backup', JSON.stringify(bdOpportunities));
+                    showMessage('info', 'Saved locally (offline mode)');
+                }
+                
+                displayBDTable(bdOpportunities);
+                updatePipelineStats();
+                resetBDForm();
+                
+            } catch (error) {
+                console.error('Error saving BD opportunity:', error);
+                
+                // Check for specific database schema errors
+                if (error.message && error.message.includes('bd_prof')) {
+                    showMessage('error', '⌘ Database Error: Missing bd_prof column. Please run: ALTER TABLE bd_opportunities ADD COLUMN bd_prof TEXT; in your Supabase SQL Editor.');
+                } else {
+                    showMessage('error', 'Error saving: ' + error.message);
+                }
+            }
+        }
+
+        // Validate BD form
+        function validateBDForm() {
+            const requiredFields = ['courseTitle', 'client', 'consultantName', 'pipelineStage'];
+            let isValid = true;
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    field.classList.add('error');
+                    isValid = false;
+                } else {
+                    field.classList.remove('error');
+                }
+            });
+            
+            return isValid;
+        }
+
+        // Reset BD form
+        function resetBDForm() {
+            document.getElementById('editingBDId').value = '';
+            document.getElementById('sourceOpportunityId').value = '';
+            document.getElementById('formTitle').textContent = 'New BD Opportunity';
+            
+            // Clear all fields
+            const fields = ['sourceOpportunity', 'courseTitle', 'client', 'consultantName', 'primaryContact', 
+                          'contactTitle', 'contactEmail', 'contactPhone', 'estimatedBudget', 
+                          'expectedCloseDate', 'competitors', 'bdNotes', 'nextActions'];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.value = '';
+                    field.classList.remove('error');
+                }
+            });
+            
+            // Reset selects
+            document.getElementById('pipelineStage').value = 'qualified';
+            document.getElementById('probability').value = '25';
+        }
+
+        // Display BD table
+        function displayBDTable(data) {
+            const tableBody = document.getElementById('bdTableBody');
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="no-data">
+                            No BD opportunities yet. Import from consultants or create new ones.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tableBody.innerHTML = data.map(opp => `
+                <tr>
+                    <td class="client-cell">${escapeHtml(opp.client)}</td>
+                    <td>${escapeHtml(opp.course_title)}</td>
+                    <td><strong>${escapeHtml(opp.consultant_name) || '-'}</strong></td>
+                    <td>
+                        ${opp.primary_contact ? `<strong>${escapeHtml(opp.primary_contact)}</strong><br>` : ''}
+                        ${opp.contact_title ? `<small>${escapeHtml(opp.contact_title)}</small><br>` : ''}
+                        ${opp.contact_email ? `<small>📧 ${escapeHtml(opp.contact_email)}</small>` : ''}
+                    </td>
+                    <td>
+                        ${opp.estimated_budget ? `<span class="revenue-badge">AED ${formatNumber(opp.estimated_budget)}</span>` : '-'}
+                    </td>
+                    <td><span class="status-badge status-${opp.pipeline_stage.replace('-', '-')}">${opp.pipeline_stage.replace('-', ' ').toUpperCase()}</span></td>
+                    <td>${opp.probability || 25}%</td>
+                    <td>${formatDate(opp.expected_close_date)}</td>
+                    <td>${escapeHtml(opp.bd_prof) || '-'}</td>
+                    <td>
+                        <button onclick="editBDOpportunity('${opp.id}')" class="btn btn-warning">Edit</button>
+                        <button onclick="deleteBDOpportunity('${opp.id}')" class="btn btn-danger">Del</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update pipeline statistics
+        function updatePipelineStats() {
+            const stats = {
+                qualified: bdOpportunities.filter(o => o.pipeline_stage === 'qualified').length,
+                proposal: bdOpportunities.filter(o => o.pipeline_stage === 'proposal').length,
+                negotiation: bdOpportunities.filter(o => o.pipeline_stage === 'negotiation').length,
+                won: bdOpportunities.filter(o => o.pipeline_stage === 'closed-won').length,
+                lost: bdOpportunities.filter(o => o.pipeline_stage === 'closed-lost').length
+            };
+            
+            document.getElementById('qualifiedCount').textContent = stats.qualified;
+            document.getElementById('proposalCount').textContent = stats.proposal;
+            document.getElementById('negotiationCount').textContent = stats.negotiation;
+            document.getElementById('wonCount').textContent = stats.won;
+            document.getElementById('lostCount').textContent = stats.lost;
+        }
+
+        // Edit BD opportunity
+        function editBDOpportunity(id) {
+            const opp = bdOpportunities.find(o => o.id === id);
+            if (!opp) return;
+
+            document.getElementById('editingBDId').value = id;
+            document.getElementById('formTitle').textContent = 'Edit BD Opportunity';
+            
+            // Fill form
+            document.getElementById('sourceOpportunityId').value = opp.source_opportunity_id || '';
+            document.getElementById('courseTitle').value = opp.course_title || '';
+            document.getElementById('client').value = opp.client || '';
+            document.getElementById('consultantName').value = opp.consultant_name || '';
+            document.getElementById('primaryContact').value = opp.primary_contact || '';
+            document.getElementById('contactTitle').value = opp.contact_title || '';
+            document.getElementById('contactEmail').value = opp.contact_email || '';
+            document.getElementById('contactPhone').value = opp.contact_phone || '';
+            document.getElementById('estimatedBudget').value = opp.estimated_budget || '';
+            document.getElementById('pipelineStage').value = opp.pipeline_stage || 'qualified';
+            document.getElementById('probability').value = opp.probability || 25;
+            document.getElementById('expectedCloseDate').value = opp.expected_close_date || '';
+            document.getElementById('competitors').value = opp.competitors || '';
+            document.getElementById('bdNotes').value = opp.bd_notes || '';
+            document.getElementById('nextActions').value = opp.next_actions || '';
+            
+            showMessage('info', 'Editing BD opportunity');
+        }
+
+        // Delete BD opportunity
+        async function deleteBDOpportunity(id) {
+            if (!confirm('Are you sure you want to delete this BD opportunity?')) return;
+            
+            try {
+                if (isOnline && supabase && !id.toString().startsWith('bd_local_')) {
+                    const { error } = await supabase
+                        .from('bd_opportunities')
+                        .delete()
+                        .eq('id', id);
+                    
+                    if (error) throw error;
+                }
+                
+                bdOpportunities = bdOpportunities.filter(opp => opp.id !== id);
+                localStorage.setItem('bd_opportunities_backup', JSON.stringify(bdOpportunities));
+                
+                displayBDTable(bdOpportunities);
+                updatePipelineStats();
+                showMessage('success', 'BD opportunity deleted');
+                
+            } catch (error) {
+                console.error('Error deleting BD opportunity:', error);
+                showMessage('error', 'Error deleting: ' + error.message);
+            }
+        }
+
+        // Filter BD table
+        function filterBDTable() {
+            const searchClient = document.getElementById('searchClient').value.toLowerCase();
+            const filterConsultant = document.getElementById('filterConsultant').value.toLowerCase();
+            const filterStage = document.getElementById('filterStage').value;
+            const filterBDProf = document.getElementById('filterBDProf').value.toLowerCase();
+            
+            const filtered = bdOpportunities.filter(opp => {
+                const matchClient = !searchClient || opp.client.toLowerCase().includes(searchClient);
+                const matchConsultant = !filterConsultant || (opp.consultant_name && opp.consultant_name.toLowerCase().includes(filterConsultant));
+                const matchStage = !filterStage || opp.pipeline_stage === filterStage;
+                const matchBDProf = !filterBDProf || (opp.bd_prof && opp.bd_prof.toLowerCase().includes(filterBDProf));
+                
+                return matchClient && matchConsultant && matchStage && matchBDProf;
+            });
+            
+            displayBDTable(filtered);
+        }
+
+        // Clear BD filters
+        function clearBDFilters() {
+            document.getElementById('searchClient').value = '';
+            document.getElementById('filterConsultant').value = '';
+            document.getElementById('filterStage').value = '';
+            document.getElementById('filterBDProf').value = '';
+            filterBDTable();
+        }
+
+        // ==================================================
+        // IMPORT/EXPORT FUNCTIONS
+        // ==================================================
+
+        // Import from consultants
+        function importFromConsultants() {
+            document.getElementById('importModal').classList.add('show');
+            loadConsultantOpportunities();
+        }
+
+        // Close import modal
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('show');
+        }
+
+        // Export BD data
+        function exportBDData() {
+            if (bdOpportunities.length === 0) {
+                alert('No BD data to export');
+                return;
+            }
+            
+            const headers = ['Client', 'Course Title', 'Consultant', 'Primary Contact', 'Contact Title', 'Email', 'Phone', 
+                           'Estimated Budget', 'Pipeline Stage', 'Probability', 'Expected Close Date', 
+                           'Competitors', 'BD Notes', 'Next Actions', 'BD Prof', 'Created', 'Updated'];
+            
+            const csvContent = [
+                headers.join(','),
+                ...bdOpportunities.map(opp => [
+                    `"${opp.client}"`,
+                    `"${opp.course_title}"`,
+                    `"${opp.consultant_name || ''}"`,
+                    `"${opp.primary_contact || ''}"`,
+                    `"${opp.contact_title || ''}"`,
+                    `"${opp.contact_email || ''}"`,
+                    `"${opp.contact_phone || ''}"`,
+                    opp.estimated_budget || '',
+                    opp.pipeline_stage,
+                    opp.probability || '',
+                    opp.expected_close_date || '',
+                    `"${opp.competitors || ''}"`,
+                    `"${(opp.bd_notes || '').replace(/"/g, '""')}"`,
+                    `"${(opp.next_actions || '').replace(/"/g, '""')}"`,
+                    `"${opp.bd_prof || ''}"`,
+                    opp.created_at || '',
+                    opp.updated_at || ''
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bd_opportunities_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Sync with Supabase
+        async function syncWithSupabase() {
+            showMessage('info', 'Syncing BD data...');
+            await loadBDOpportunities();
+            await loadConsultantOpportunities();
+            showMessage('success', '✔ BD sync complete!');
+        }
+
+        // ==================================================
+        // UTILITY FUNCTIONS
+        // ==================================================
+
+        // Save BD name
+        function saveBDName() {
+            const selector = document.getElementById('bdSelector');
+            if (selector) {
+                localStorage.setItem('current_bd_prof', selector.value);
+            }
+        }
+
+        // Load BD name from localStorage
+        function loadBDName() {
+            const savedBDProf = localStorage.getItem('current_bd_prof');
+            const selector = document.getElementById('bdSelector');
+            if (savedBDProf && selector) {
+                selector.value = savedBDProf;
+            }
+        }
+
+        // Show message
+        function showMessage(type, message) {
+            const formMessage = document.getElementById('formMessage');
+            formMessage.textContent = message;
+            formMessage.className = type + '-message';
+            formMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                formMessage.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        // Format number
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-AE').format(num);
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return (text || '').toString().replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // ==================================================
+        // INITIALIZATION
+        // ==================================================
+
+        // Initialize BD module
+        window.onload = async function() {
+            console.log('Initializing BD Module...');
+            
+            try {
+                // Clear any existing BD data to start fresh with new BD team
+                const currentBDProf = localStorage.getItem('current_bd_prof');
+                const validBDProfs = ['Amal Kayed', 'Wael Ghosheh'];
+                
+                // Clear BD prof if it's not one of our current team members
+                if (currentBDProf && !validBDProfs.includes(currentBDProf)) {
+                    localStorage.removeItem('current_bd_prof');
+                    console.log('Cleared outdated BD professional from storage');
+                }
+                
+                // Load BD professional name
+                loadBDName();
+                
+                // Initialize Supabase
+                if (initializeSupabase()) {
+                    await checkConnection();
+                    await ensureBDTable();
+                    await loadBDOpportunities();
+                    await loadConsultantOpportunities();
+                } else {
+                    updateConnectionStatus(false, 'Offline mode');
+                    
+                    // Load from backup
+                    const bdBackup = localStorage.getItem('bd_opportunities_backup');
+                    if (bdBackup) {
+                        bdOpportunities = JSON.parse(bdBackup);
+                        displayBDTable(bdOpportunities);
+                        updatePipelineStats();
+                    }
+                    
+                    const consultantBackup = localStorage.getItem('training_opportunities_backup');
+                    if (consultantBackup) {
+                        const allOpportunities = JSON.parse(consultantBackup);
+                        consultantOpportunities = allOpportunities.filter(o => 
+                            o.status === 'complete' || o.status === 'in-progress'
+                        );
+                        updateSourceOpportunityDropdown();
+                    }
+                }
+                
+                // Check connection periodically
+                setInterval(checkConnection, 30000);
+                
+                console.log('BD Module initialization complete with BD team: Amal Kayed, Wael Ghosheh');
+                
+            } catch (error) {
+                console.error('BD Module initialization error:', error);
+                updateConnectionStatus(false, 'Error');
+                showMessage('error', 'Initialization error: ' + error.message);
+            }
+        };
+    </script>
+<!-- 
+================================
+BD MODULE AUTO-DETECTION PATCH
+================================
+Add this code to your bd-module.html file
+to enable automatic BD representative detection
+================================
+-->
+
+<!-- Add this right before the closing </body> tag in your bd-module.html -->
+
+<script>
+// ============================================
+// BD MODULE AUTO-DETECTION ENHANCEMENT
+// ============================================
+
+// Override the window.onload to add session detection
+(function() {
+    // Store the original onload function
+    const originalOnload = window.onload;
+    
+    // Auto-detect logged-in BD user from session
+    function getLoggedInBDUser() {
+        // Check sessionStorage for email (from login)
+        const sessionEmail = sessionStorage.getItem('logged_in_email');
+        const sessionUser = sessionStorage.getItem('logged_in_user');
+        
+        console.log('Checking for BD user session...');
+        
+        if (sessionEmail) {
+            console.log('👤 BD User email detected:', sessionEmail);
+            // Map email to BD name
+            if (sessionEmail.toLowerCase().includes('amal.kayed')) return 'Amal Kayed';
+            if (sessionEmail.toLowerCase().includes('wael.ghosheh')) return 'Wael Ghosheh';
+        }
+        
+        if (sessionUser) {
+            console.log('👤 BD User detected:', sessionUser);
+            // Check if it's already the full name
+            if (sessionUser === 'Amal Kayed' || sessionUser === 'Wael Ghosheh') {
+                return sessionUser;
+            }
+            // Map partial names
+            if (sessionUser.toLowerCase().includes('amal')) return 'Amal Kayed';
+            if (sessionUser.toLowerCase().includes('wael')) return 'Wael Ghosheh';
+        }
+        
+        // Check URL parameters (if passed from login page)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlEmail = urlParams.get('email');
+        const urlUser = urlParams.get('user');
+        
+        if (urlEmail) {
+            console.log('👤 BD email from URL:', urlEmail);
+            sessionStorage.setItem('logged_in_email', urlEmail);
+            if (urlEmail.toLowerCase().includes('amal.kayed')) return 'Amal Kayed';
+            if (urlEmail.toLowerCase().includes('wael.ghosheh')) return 'Wael Ghosheh';
+        }
+        
+        if (urlUser) {
+            console.log('👤 BD user from URL:', urlUser);
+            sessionStorage.setItem('logged_in_user', urlUser);
+            if (urlUser.toLowerCase().includes('amal')) return 'Amal Kayed';
+            if (urlUser.toLowerCase().includes('wael')) return 'Wael Ghosheh';
+        }
+        
+        // For testing - auto-set as Amal
+        const isDevelopment = window.location.protocol === 'file:';
+        if (isDevelopment) {
+            console.log('🔧 Development mode - auto-setting as Amal Kayed for testing');
+            return 'Amal Kayed';
+        }
+        
+        return null;
+    }
+    
+    // Set BD rep based on logged-in user
+    function setBDRepFromSession() {
+        const loggedInBDUser = getLoggedInBDUser();
+        const selector = document.getElementById('bdSelector');
+        
+        if (!selector) {
+            console.log('BD selector not found');
+            return false;
+        }
+        
+        if (loggedInBDUser) {
+            // Check if this user is in the BD team
+            const validBDReps = ['Amal Kayed', 'Wael Ghosheh'];
+            
+            if (validBDReps.includes(loggedInBDUser)) {
+                // Set the selector value
+                selector.value = loggedInBDUser;
+                
+                // Make it read-only since user is authenticated
+                selector.style.backgroundColor = '#e0f2fe';
+                selector.style.border = '2px solid #0ea5e9';
+                selector.disabled = true;
+                
+                // Add visual indicator
+                const label = selector.previousElementSibling;
+                if (label) {
+                    label.innerHTML = `BD Representative: <span style="color: #0ea5e9; font-weight: 700;">✓ ${loggedInBDUser}</span>`;
+                }
+                
+                // Save to localStorage for backup
+                localStorage.setItem('current_bd_rep', loggedInBDUser);
+                
+                console.log('✅ BD Rep auto-set to:', loggedInBDUser);
+                
+                // Show success message if function exists
+                if (typeof showMessage === 'function') {
+                    showMessage('success', `✅ Logged in as: ${loggedInBDUser}`);
+                }
+                
+                return true;
+            } else {
+                console.log('⚠️ User not in BD team:', loggedInBDUser);
+            }
+        } else {
+            console.log('ℹ️ No BD user session found');
+            // Make selector border orange to indicate manual selection needed
+            selector.style.border = '2px solid #f59e0b';
+        }
+        
+        return false;
+    }
+    
+    // Enhanced onload function
+    window.onload = async function() {
+        console.log('BD Module Loading with Auto-Detection...');
+        
+        // Try to auto-detect BD user first
+        setTimeout(() => {
+            const autoDetected = setBDRepFromSession();
+            if (autoDetected) {
+                console.log('✅ BD Representative auto-detected successfully');
+            } else {
+                console.log('⚠️ Please select BD representative manually');
+            }
+        }, 100);
+        
+        // Call the original onload if it exists
+        if (originalOnload && typeof originalOnload === 'function') {
+            await originalOnload();
+        }
+    };
+})();
+
+// ============================================
+// TESTING HELPERS
+// ============================================
+
+// Function to simulate login (for testing)
+function simulateBDLogin(email) {
+    sessionStorage.setItem('logged_in_email', email);
+    console.log(`Simulated login as: ${email}`);
+    console.log('Reload the page to see auto-detection in action');
+}
+
+// Add keyboard shortcut for testing (Ctrl+Shift+L)
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+        const email = prompt('Enter BD email to simulate login:\n- amal.kayed@vifm.ae\n- wael.ghosheh@vifm.ae');
+        if (email) {
+            simulateBDLogin(email);
+            location.reload();
+        }
+    }
+});
+
+console.log('BD Auto-Detection Enhancement Loaded');
+console.log('Tip: Press Ctrl+Shift+L to simulate login for testing');
+</script>
 </body>
 </html>
