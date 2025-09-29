@@ -46,12 +46,34 @@ CREATE TRIGGER on_auth_user_created
 -- 3. STRICT RLS POLICIES (SECURITY CRITICAL)
 -- =====================================================
 
--- Drop existing overly permissive policies
+-- Drop ALL existing policies to ensure clean setup
 DROP POLICY IF EXISTS "Enable all operations for bd_opportunities" ON bd_opportunities;
 DROP POLICY IF EXISTS "Public access for opportunities" ON opportunities;
 DROP POLICY IF EXISTS "Authenticated users can access opportunities" ON opportunities;
 DROP POLICY IF EXISTS "Authenticated users can access bd_opportunities" ON bd_opportunities;
 DROP POLICY IF EXISTS "Authenticated users can view profiles" ON profiles;
+
+-- Drop our own policies if they exist (for re-running script)
+DROP POLICY IF EXISTS "profiles_select_own" ON profiles;
+DROP POLICY IF EXISTS "profiles_update_own" ON profiles;
+DROP POLICY IF EXISTS "profiles_admin_update" ON profiles;
+DROP POLICY IF EXISTS "profiles_insert_own" ON profiles;
+DROP POLICY IF EXISTS "Users can view their own profile only" ON profiles;
+DROP POLICY IF EXISTS "Users can update their own profile only" ON profiles;
+DROP POLICY IF EXISTS "Prevent role elevation" ON profiles;
+DROP POLICY IF EXISTS "System can create profiles" ON profiles;
+
+DROP POLICY IF EXISTS "opportunities_select" ON opportunities;
+DROP POLICY IF EXISTS "opportunities_insert" ON opportunities;
+DROP POLICY IF EXISTS "opportunities_update" ON opportunities;
+DROP POLICY IF EXISTS "opportunities_delete" ON opportunities;
+DROP POLICY IF EXISTS "Users manage their opportunities only" ON opportunities;
+
+DROP POLICY IF EXISTS "bd_opportunities_select" ON bd_opportunities;
+DROP POLICY IF EXISTS "bd_opportunities_insert" ON bd_opportunities;
+DROP POLICY IF EXISTS "bd_opportunities_update" ON bd_opportunities;
+DROP POLICY IF EXISTS "bd_opportunities_delete" ON bd_opportunities;
+DROP POLICY IF EXISTS "Users manage their bd_opportunities only" ON bd_opportunities;
 
 -- Secure profile policies
 CREATE POLICY "profiles_select_own" ON profiles
