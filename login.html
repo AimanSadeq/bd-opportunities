@@ -609,56 +609,20 @@
                     throw new Error('Authentication system not ready');
                 }
                 
-                // Try Supabase authentication first
+                // Supabase authentication
                 const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
                 
-                if (error || !data.user) {
-                    console.log('Supabase auth failed:', error?.message || 'No user returned');
-                    
-                    // Fallback: Check if this is a demo user in profiles table
-                    const { data: profileCheck, error: profileError } = await supabaseClient
-                        .from('profiles')
-                        .select('*')
-                        .eq('email', email)
-                        .single();
-                    
-                    if (profileCheck && (password === 'admin123' || password === 'password123')) {
-                        console.log('✅ Demo user login successful:', profileCheck.full_name);
-                        
-                        // Create session for demo user
-                        const demoSession = {
-                            user: {
-                                id: profileCheck.user_id || profileCheck.id,
-                                email: profileCheck.email,
-                                user_metadata: { full_name: profileCheck.full_name }
-                            },
-                            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                            access_token: 'demo_token_' + Date.now(),
-                            profile: profileCheck
-                        };
-                        
-                        // Store session
-                        sessionStorage.setItem('vifm_session', JSON.stringify(demoSession));
-                        localStorage.setItem('vifm_profile', JSON.stringify(profileCheck));
-                        
-                        showMessage('success', 'Demo login successful! Redirecting...');
-                        
-                        // Redirect based on role
-                        setTimeout(() => {
-                            redirectBasedOnRole(profileCheck.role);
-                        }, 1000);
-                        
-                        return;
-                    }
-                    
-                    // Neither auth method worked
-                    throw new Error(error?.message || 'Invalid email or password');
+                if (error) {
+                    throw new Error(error.message);
                 }
                 
-                // Standard Supabase auth successful
+                if (!data.user) {
+                    throw new Error('Login failed - no user returned');
+                }
+                
                 // Get user profile from database
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
@@ -842,6 +806,48 @@
             }
         }
         
+        // Create admin user if doesn't exist
+        async function createAdminUser() {
+            try {
+                if (!supabaseClient) {
+                    console.log('Supabase client not ready for admin creation');
+                    return;
+                }
+                
+                console.log('Checking/creating admin user...');
+                
+                // Try to sign up the admin user
+                const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
+                    email: 'asadeq@viftraining.com',
+                    password: 'admin123'
+                });
+                
+                if (signUpError && !signUpError.message.includes('already')) {
+                    console.error('Admin user creation failed:', signUpError);
+                    return;
+                }
+                
+                if (signUpData.user) {
+                    console.log('Admin user created/exists:', signUpData.user.id);
+                    
+                    // Update the profile with the user_id
+                    const { error: updateError } = await supabaseClient
+                        .from('profiles')
+                        .update({ user_id: signUpData.user.id })
+                        .eq('email', 'asadeq@viftraining.com');
+                    
+                    if (updateError) {
+                        console.error('Profile update failed:', updateError);
+                    } else {
+                        console.log('✅ Admin profile linked to Supabase auth');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Admin setup error:', error);
+            }
+        }
+        
         // Initialize and check for existing session
         window.onload = async function() {
             console.log('VIFM Production Login System initializing...');
@@ -854,6 +860,11 @@
                     localStorage.removeItem('session_token');
                     localStorage.removeItem('user_data');
                     console.log('Cleared old localStorage session data');
+                }
+                
+                // Initialize Supabase and create admin user if needed
+                if (initializeSupabase()) {
+                    await createAdminUser();
                 }
                 
                 console.log('✅ VIFM Production Login System ready');
