@@ -19,18 +19,18 @@ ALTER COLUMN role SET DEFAULT 'consultant';
 -- 2. AUTOMATIC PROFILE CREATION TRIGGER
 -- =====================================================
 
--- Function to automatically create profiles when auth users are created
+-- CORRECTED: Function to automatically create profiles when auth users are created
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role)
+  INSERT INTO public.profiles (user_id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     'consultant' -- Always default to consultant role for security
   )
-  ON CONFLICT (id) DO NOTHING; -- Prevent duplicate inserts
+  ON CONFLICT (user_id) DO NOTHING; -- Prevent duplicate inserts
   
   RETURN NEW;
 END;
@@ -75,15 +75,15 @@ DROP POLICY IF EXISTS "bd_opportunities_update" ON bd_opportunities;
 DROP POLICY IF EXISTS "bd_opportunities_delete" ON bd_opportunities;
 DROP POLICY IF EXISTS "Users manage their bd_opportunities only" ON bd_opportunities;
 
--- Secure profile policies
+-- CORRECTED: Secure profile policies using user_id link
 CREATE POLICY "profiles_select_own" ON profiles
-  FOR SELECT USING (auth.uid() = id);
+  FOR SELECT USING (auth.uid() = user_id);
 
 -- CRITICAL: Secure UPDATE policy with WITH CHECK to prevent role elevation
 CREATE POLICY "profiles_update_own" ON profiles  
   FOR UPDATE 
-  USING (auth.uid() = id) 
-  WITH CHECK (auth.uid() = id AND role IN ('consultant', 'bd'));
+  USING (auth.uid() = user_id) 
+  WITH CHECK (auth.uid() = user_id AND role IN ('consultant', 'bd'));
 
 -- Admin override policy (allows admins to update any profile)
 CREATE POLICY "profiles_admin_update" ON profiles
@@ -91,7 +91,7 @@ CREATE POLICY "profiles_admin_update" ON profiles
   USING (
     EXISTS (
       SELECT 1 FROM profiles 
-      WHERE id = auth.uid() AND role = 'admin'
+      WHERE user_id = auth.uid() AND role = 'admin'
     )
   )
   WITH CHECK (role IN ('consultant', 'bd', 'admin'));
@@ -100,7 +100,7 @@ CREATE POLICY "profiles_admin_update" ON profiles
 CREATE POLICY "profiles_insert_own" ON profiles
   FOR INSERT 
   WITH CHECK (
-    auth.uid() = id AND 
+    auth.uid() = user_id AND 
     role IN ('consultant', 'bd')
   );
 
@@ -170,7 +170,7 @@ CREATE POLICY "bd_opportunities_delete" ON bd_opportunities
 -- 4. ADMIN ROLE PROTECTION
 -- =====================================================
 
--- Function to safely promote users to admin (must be called by existing admin)
+-- CORRECTED: Function to safely promote users to admin (must be called by existing admin)
 CREATE OR REPLACE FUNCTION promote_to_admin(target_user_id UUID)
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -179,7 +179,7 @@ BEGIN
   -- Check if current user is admin
   SELECT role INTO current_user_role 
   FROM profiles 
-  WHERE id = auth.uid();
+  WHERE user_id = auth.uid();
   
   IF current_user_role != 'admin' THEN
     RAISE EXCEPTION 'Only administrators can promote users to admin role';
@@ -188,7 +188,7 @@ BEGIN
   -- Update target user role
   UPDATE profiles 
   SET role = 'admin' 
-  WHERE id = target_user_id;
+  WHERE user_id = target_user_id;
   
   RETURN TRUE;
 END;
