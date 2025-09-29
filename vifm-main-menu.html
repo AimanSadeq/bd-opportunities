@@ -539,8 +539,45 @@
         // USER INTERFACE FUNCTIONS
         // ==================================================
         
+        // Global user object
+        let currentUser = null;
+        
+        // Load user data from session storage
+        function loadCurrentUser() {
+            try {
+                // Try to get user from session storage (from admin quick login)
+                const storedUser = sessionStorage.getItem('current_user');
+                if (storedUser) {
+                    currentUser = JSON.parse(storedUser);
+                    console.log('✅ User loaded from session:', currentUser.full_name);
+                    return true;
+                }
+                
+                // Fallback: try to get from admin session
+                const adminSession = sessionStorage.getItem('admin_session');
+                if (adminSession) {
+                    const session = JSON.parse(adminSession);
+                    currentUser = session.profile;
+                    console.log('✅ User loaded from admin session:', currentUser.full_name);
+                    return true;
+                }
+                
+                console.error('❌ No user data found in session storage');
+                return false;
+                
+            } catch (error) {
+                console.error('❌ Error loading user data:', error);
+                return false;
+            }
+        }
+        
         // Load user information
         function loadUserInfo() {
+            if (!currentUser) {
+                console.error('❌ Current user not loaded');
+                return;
+            }
+            
             document.getElementById('userName').textContent = currentUser.full_name;
             document.getElementById('userRole').textContent = getRoleDisplay(currentUser.role);
             
@@ -770,6 +807,13 @@
         window.onload = async function() {
             // Authentication already verified by pre-render guards
             
+            // Load user data from session storage first
+            if (!loadCurrentUser()) {
+                console.error('❌ Failed to load user data, redirecting to login');
+                window.location.href = 'login.html';
+                return;
+            }
+            
             // Initialize Supabase
             if (!initializeSupabase()) {
                 console.warn('Failed to connect to database. Some features may not work.');
@@ -780,7 +824,7 @@
             await loadStats();
             loadNavigation();
             
-            console.log('Dashboard loaded for:', currentUser.full_name, '(', currentUser.role, ')');
+            console.log('✅ Dashboard loaded for:', currentUser.full_name, '(', currentUser.role, ')');
         };
     </script>
 </body>
