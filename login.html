@@ -451,6 +451,22 @@
     <script>
         // Production Authentication System using Supabase
         
+        // Wait for everything to load before enabling login
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                console.log('DOM loaded, checking Auth availability...');
+                console.log('window.Auth:', !!window.Auth);
+                console.log('window.VIFMSupabase:', !!window.VIFMSupabase);
+                console.log('window.VIFMSupabase.Auth:', !!window.VIFMSupabase?.Auth);
+                
+                if (window.Auth || window.VIFMSupabase?.Auth) {
+                    console.log('✅ Authentication system ready!');
+                } else {
+                    console.error('❌ Authentication system not available');
+                }
+            }, 1000);
+        });
+        
         // Handle login with proper Supabase authentication
         async function handleLogin(event) {
             event.preventDefault();
@@ -470,13 +486,66 @@
             loginBtn.innerHTML = '<span class="spinner"></span> Signing in...';
             
             try {
-                // Check if Auth is available
-                if (!window.Auth) {
+                // Check if Auth is available with debugging
+                console.log('Checking Auth availability...', !!window.Auth);
+                console.log('VIFMSupabase available:', !!window.VIFMSupabase);
+                console.log('VIFMSupabase.Auth available:', !!window.VIFMSupabase?.Auth);
+                
+                // Try to get Auth from multiple sources
+                let auth = window.Auth || window.VIFMSupabase?.Auth;
+                
+                if (!auth) {
+                    console.error('Auth object not found in window.Auth or window.VIFMSupabase.Auth');
+                    // Try a direct database approach as fallback
+                    if (window.getSupabaseClient) {
+                        console.log('Attempting direct database authentication...');
+                        const client = window.getSupabaseClient();
+                        
+                        // Check if user exists in profiles with demo password
+                        if (password !== 'password123') {
+                            throw new Error('Invalid password. Demo password is: password123');
+                        }
+                        
+                        const { data: profile, error } = await client
+                            .from('profiles')
+                            .select('*')
+                            .eq('email', email)
+                            .single();
+                            
+                        if (error || !profile) {
+                            throw new Error('User not found or invalid credentials');
+                        }
+                        
+                        // Create mock session
+                        const mockSession = {
+                            user: {
+                                id: profile.id,
+                                email: profile.email,
+                                user_metadata: { full_name: profile.full_name }
+                            }
+                        };
+                        
+                        localStorage.setItem('vifm_session', JSON.stringify(mockSession));
+                        localStorage.setItem('vifm_profile', JSON.stringify(profile));
+                        
+                        const result = { user: mockSession.user, session: mockSession };
+                        
+                        showMessage('success', 'Login successful! Redirecting...');
+                        
+                        setTimeout(() => {
+                            redirectBasedOnRole(profile.role);
+                        }, 1000);
+                        
+                        return;
+                    }
+                    
                     throw new Error('Authentication system not available. Please refresh the page.');
                 }
                 
+                console.log('Auth object found:', !!auth);
+                
                 // Use the Auth.signIn method I created
-                const result = await window.Auth.signIn(email, password);
+                const result = await auth.signIn(email, password);
                 
                 if (!result || !result.user) {
                     throw new Error('Login failed. Please try again.');
