@@ -27,29 +27,49 @@ let supabaseClient = null;
 
 function initializeSupabase() {
     try {
-        if (!window.supabase) {
-            throw new Error('Supabase library not loaded. Please ensure @supabase/supabase-js is included.');
+        // Check if Supabase library is loaded properly
+        if (!window.supabase || !window.supabase.createClient) {
+            throw new Error('Supabase library not loaded properly. Please ensure @supabase/supabase-js is included.');
         }
+        
+        console.log('[Supabase] Initializing client...');
         
         const url = getEnvVar('SUPABASE_URL');
         const key = getEnvVar('SUPABASE_ANON_KEY');
         
+        console.log('[Supabase] Using URL:', url ? url.substring(0, 30) + '...' : 'NOT FOUND');
+        console.log('[Supabase] Using Key:', key ? 'PROVIDED' : 'NOT FOUND');
+        
         if (!url || !key) {
             throw new Error('Supabase credentials missing. Please check SUPABASE_URL and SUPABASE_ANON_KEY in secrets.');
         }
+        
         supabaseClient = window.supabase.createClient(url, key, {
             auth: {
                 autoRefreshToken: true,
                 persistSession: true,
-                detectSessionInUrl: true
+                detectSessionInUrl: false, // Disable to prevent postMessage recursion
+                storage: window.sessionStorage // Use sessionStorage for auth persistence
+            },
+            db: {
+                schema: 'public'
             }
         });
+        
+        console.log('[Supabase] Client created:', !!supabaseClient);
+        console.log('[Supabase] Client has .from method:', typeof supabaseClient.from === 'function');
+        
+        // Test the client immediately
+        if (!supabaseClient.from) {
+            throw new Error('Supabase client creation failed - missing .from method');
+        }
         
         console.log('✅ Supabase client initialized successfully');
         return supabaseClient;
         
     } catch (error) {
         console.error('❌ Supabase initialization failed:', error.message);
+        console.error('❌ Full error:', error);
         return null;
     }
 }
@@ -64,132 +84,128 @@ function getSupabaseClient() {
 
 // Authentication functions
 const Auth = {
-    // Sign in with email and password (Demo version - simplified authentication)
+    // Sign in with email and password (Production version - Secure)
     async signIn(email, password) {
         const client = getSupabaseClient();
         if (!client) throw new Error('Supabase client not available');
         
-        // For demo purposes, validate against the profiles table directly
-        if (password !== 'password123') {
-            throw new Error('Invalid credentials');
-        }
-        
-        // Check if user exists in profiles - try multiple approaches
-        console.log('Searching for user with email:', email);
-        
-        // Try standard Supabase query first
-        let { data: profile, error } = await client
-            .from('profiles')
-            .select('*')
-            .eq('email', email)
-            .single();
+        // Use actual Supabase authentication only
+        try {
+            const { data, error } = await client.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
             
-        console.log('Database query result:', { profile, error });
-        
-        // If we get a schema cache error, try direct SQL approach
-        if (error && error.code === 'PGRST205') {
-            console.log('Schema cache error detected, trying direct SQL approach...');
-            
-            try {
-                const { data: rawData, error: sqlError } = await client.rpc('get_profile_by_email', {
-                    email_param: email
-                });
-                
-                if (!sqlError && rawData && rawData.length > 0) {
-                    profile = rawData[0];
-                    error = null;
-                    console.log('Direct SQL approach successful:', profile);
-                } else {
-                    console.log('Creating RPC function for direct access...');
-                    // Fallback: Use a simple hardcoded check for demo users
-                    const demoUsers = {
-                        'aiman@vifm.ae': { id: '912b6d93-4b8a-44ca-b6a3-88c588cd988c', email: 'aiman@vifm.ae', full_name: 'Aiman', role: 'consultant' },
-                        'amal.kayed@vifm.ae': { id: '6a6c87f8-9170-4214-858d-8aee98e8af2a', email: 'amal.kayed@vifm.ae', full_name: 'Amal Kayed', role: 'bd' },
-                        'admin@vifm.ae': { id: '9f7089dd-5da6-464e-9389-7f9b37fc1eb0', email: 'admin@vifm.ae', full_name: 'Administrator', role: 'admin' }
-                    };
-                    
-                    if (demoUsers[email]) {
-                        profile = demoUsers[email];
-                        error = null;
-                        console.log('Using demo user data:', profile);
-                    }
-                }
-            } catch (rpcError) {
-                console.log('RPC approach failed, using demo data fallback');
-                // Use demo data as final fallback
-                const demoUsers = {
-                    'aiman@vifm.ae': { id: '912b6d93-4b8a-44ca-b6a3-88c588cd988c', email: 'aiman@vifm.ae', full_name: 'Aiman', role: 'consultant' },
-                    'amal.kayed@vifm.ae': { id: '6a6c87f8-9170-4214-858d-8aee98e8af2a', email: 'amal.kayed@vifm.ae', full_name: 'Amal Kayed', role: 'bd' },
-                    'admin@vifm.ae': { id: '9f7089dd-5da6-464e-9389-7f9b37fc1eb0', email: 'admin@vifm.ae', full_name: 'Administrator', role: 'admin' }
-                };
-                
-                if (demoUsers[email]) {
-                    profile = demoUsers[email];
-                    error = null;
-                    console.log('Using hardcoded demo user data:', profile);
-                }
+            if (error) {
+                console.error('Authentication failed:', error.message);
+                throw new Error('Invalid email or password');
             }
+            
+            // Get profile from database
+            const { data: profile, error: profileError } = await client
+                .from('profiles')
+                .select('*')
+                .eq('email', email)
+                .single();
+                
+            if (profileError) {
+                console.error('Profile fetch error:', profileError);
+                throw new Error('User profile not found');
+            }
+            
+            // Store session in sessionStorage only
+            sessionStorage.setItem('vifm_session', JSON.stringify({
+                user: data.user,
+                profile: profile,
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+            }));
+            
+            return { user: data.user, session: data.session, profile };
+            
+        } catch (error) {
+            console.error('Authentication error:', error);
+            throw error;
         }
-        
-        if (error && profile === null) {
-            console.error('Database error:', error);
-            throw new Error(`Database error: ${error.message}`);
-        }
-        
-        if (!profile) {
-            console.error('No profile found for email:', email);
-            throw new Error('User not found. Please check your email address.');
-        }
-        
-        console.log('User profile found:', profile.email, 'Role:', profile.role);
-        
-        // Create a mock session for demo purposes
-        const mockSession = {
-            user: {
-                id: profile.id,
-                email: profile.email,
-                user_metadata: {
-                    full_name: profile.full_name
-                }
-            },
-            access_token: 'demo_token_' + Date.now()
-        };
-        
-        // Store session in localStorage for demo purposes
-        localStorage.setItem('vifm_session', JSON.stringify(mockSession));
-        localStorage.setItem('vifm_profile', JSON.stringify(profile));
-        
-        return { user: mockSession.user, session: mockSession };
     },
     
-    // Sign out (Demo version)
+    // Sign out (Production version)
     async signOut() {
-        // Clear demo session data
+        try {
+            // Sign out from Supabase
+            const client = getSupabaseClient();
+            if (client) {
+                await client.auth.signOut();
+            }
+        } catch (error) {
+            console.error('Supabase signout error:', error);
+        }
+        
+        // Clear session data from sessionStorage only
+        sessionStorage.removeItem('vifm_session');
+        sessionStorage.removeItem('vifm_profile');
+        // Clear any legacy localStorage items but don't wipe all localStorage
         localStorage.removeItem('vifm_session');
         localStorage.removeItem('vifm_profile');
-        localStorage.clear();
     },
     
-    // Get current session (Demo version)
+    // Get current session (Production version)
     async getSession() {
         try {
-            const sessionData = localStorage.getItem('vifm_session');
+            // Try real Supabase session first
+            const client = getSupabaseClient();
+            if (client) {
+                const { data: session } = await client.auth.getSession();
+                if (session.session) {
+                    return session.session;
+                }
+            }
+            
+            // Fallback to stored session
+            const sessionData = sessionStorage.getItem('vifm_session');
             if (!sessionData) return null;
             
-            return JSON.parse(sessionData);
+            const session = JSON.parse(sessionData);
+            
+            // Check if session is expired
+            if (session.expires_at && new Date(session.expires_at) <= new Date()) {
+                sessionStorage.removeItem('vifm_session');
+                return null;
+            }
+            
+            return session;
         } catch (error) {
             console.error('Session error:', error);
             return null;
         }
     },
     
-    // Get current user with profile (Demo version)
+    // Get current user with profile (Production version)
     async getCurrentUser() {
         const session = await this.getSession();
-        if (!session?.user) return null;
+        if (!session?.user) return { user: null, profile: null };
         
         try {
-            const profileData = localStorage.getItem('vifm_profile');
+            // If session includes profile, use it
+            if (session.profile) {
+                return { user: session.user, profile: session.profile };
+            }
+            
+            // Otherwise fetch from database
+            const client = getSupabaseClient();
+            if (client) {
+                const { data: profile, error } = await client
+                    .from('profiles')
+                    .select('*')
+                    .eq('email', session.user.email)
+                    .single();
+                    
+                if (!error && profile) {
+                    return { user: session.user, profile };
+                }
+            }
+            
+            // Fallback to stored profile
+            const profileData = sessionStorage.getItem('vifm_profile') || localStorage.getItem('vifm_profile');
             const profile = profileData ? JSON.parse(profileData) : null;
             
             return { user: session.user, profile };
@@ -264,10 +280,10 @@ const Database = {
         const session = await Auth.getSession();
         if (!session?.user) throw new Error('User not authenticated');
         
-        // Add created_by field if not present
+        // Add created_by field if not present - use user.id for RLS compatibility
         if (!data.created_by && table !== 'profiles') {
             const { user, profile } = await Auth.getCurrentUser();
-            data.created_by = profile?.id || user.id;
+            data.created_by = user.id; // Always use user.id for Supabase auth.uid() RLS policies
         }
         
         const { data: result, error } = await client

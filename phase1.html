@@ -15,17 +15,26 @@
     <!-- Universal Route Guards -->
     <script src="route-guards.js"></script>
     
-    <!-- FORCE VISIBILITY - NO AUTHENTICATION -->
+    <!-- Pre-render Security: Hide content until authentication verified -->
     <style>
-        body { 
-            visibility: visible !important; 
-            display: block !important; 
-            opacity: 1 !important;
-            background: white !important;
+        body { visibility: hidden !important; }
+        .auth-loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #010131 0%, #121140 100%);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-family: 'Open Sans', Arial, sans-serif; z-index: 99999; visibility: visible !important;
         }
-        .auth-loading { display: none !important; }
-        * { visibility: visible !important; }
     </style>
+    
+    <!-- Pre-render Authentication - Runs IMMEDIATELY -->
+    <script>
+        document.write('<div class="auth-loading"><div style="text-align: center;"><div style="font-size: 2rem; margin-bottom: 1rem;">🏢</div><h2 style="margin-bottom: 0.5rem;">Verifying Access...</h2><p style="opacity: 0.8;">Loading Consultant Module...</p></div></div>');
+        
+        // Execute pre-render security immediately
+        (async function() {
+            await window.VIFMRouteGuards.executePreRenderSecurity();
+        })();
+    </script>
     
     <!-- Google Fonts - Open Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -1519,22 +1528,95 @@
         // ==================================================
 
         window.onload = async function() {
-            // FORCE SIMPLE INITIALIZATION WITHOUT AUTH
-            debugLog('🔧 SIMPLE INITIALIZATION - NO AUTH REQUIRED');
-            document.body.style.visibility = 'visible';
-            document.body.style.display = 'block';
-            document.body.style.opacity = '1';
-            
-            // Set consultant name
-            document.getElementById('consultantSelector').value = 'Aiman';
-            
-            // Show connected status
-            updateConnectionStatus(true, 'Connected (Demo Mode)');
-            
-            // Load some demo data  
-            loadOpportunities();
-            
-            debugLog('✅ Page fully initialized');
+            try {
+                // STEP 1: Verify authentication and role access (handled by route-guards.js)
+                const hasAccess = await window.VIFMRouteGuards.requireRole('consultant');
+                if (!hasAccess) {
+                    return; // Route guard handles redirection
+                }
+                
+                if (!window.VIFMSupabase) {
+                    throw new Error('Authentication system not available');
+                }
+                
+                // Get current user info
+                const { user, profile } = await window.VIFMSupabase.Auth.getCurrentUser();
+                if (!user || !profile) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                debugLog('✅ Authentication verified for consultant:', profile.full_name);
+                
+                // STEP 2: Set defaults and auto-populate consultant info
+                setTodaysDate();
+                
+                // Auto-set consultant name from authenticated user
+                if (profile.role === 'consultant') {
+                    const consultantSelector = document.getElementById('consultantSelector');
+                    if (consultantSelector && profile.full_name) {
+                        consultantSelector.value = profile.full_name;
+                        localStorage.setItem('current_consultant', profile.full_name);
+                    }
+                }
+                
+                // STEP 3: Initialize database connection  
+                const connectionTest = await window.VIFMSupabase.Database.testConnection();
+                if (connectionTest.success) {
+                    debugLog('✅ Database connection established');
+                    updateConnectionStatus(true, 'Connected to Supabase');
+                    
+                    // Load live data using centralized system
+                    await loadOpportunities();
+                    
+                } else {
+                    debugLog('⚠️ Database connection failed, using offline mode:', connectionTest.message);
+                    updateConnectionStatus(false, 'Offline mode - ' + connectionTest.message);
+                    
+                    // Load from backup
+                    const backup = localStorage.getItem('training_opportunities_backup');
+                    if (backup) {
+                        opportunities = JSON.parse(backup);
+                        displayTable(opportunities);
+                        debugLog('📦 Loaded from localStorage backup', { count: opportunities.length });
+                    }
+                }
+                
+                // STEP 4: Start periodic connection checks
+                setInterval(async () => {
+                    const test = await window.VIFMSupabase.Database.testConnection();
+                    updateConnectionStatus(test.success, test.message);
+                }, 30000);
+                
+                debugLog('✅ Consultant Module initialization complete for:', profile.full_name);
+                
+                // CRITICAL: Ensure page is visible after successful initialization
+                document.body.style.visibility = 'visible';
+                document.body.style.display = '';
+                
+                // Remove all overlays and loading elements
+                const overlays = document.querySelectorAll('.auth-loading, #auth-overlay');
+                overlays.forEach(overlay => overlay.remove());
+                
+                // Force content container to be visible
+                const contentContainer = document.querySelector('.consultant-dashboard');
+                if (contentContainer) {
+                    contentContainer.style.display = 'block';
+                    contentContainer.style.visibility = 'visible';
+                }
+                
+                debugLog('🎯 FORCED page and content visibility ON');
+                
+            } catch (error) {
+                debugLog('❌ Initialization error:', error);
+                updateConnectionStatus(false, 'Error: ' + error.message);
+                showMessage('error', 'System error: ' + error.message);
+                
+                // If it's an auth error, redirect to login
+                if (error.message.includes('Authentication') || error.message.includes('session')) {
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                }
+            }
         };
 
         // MISSING FUNCTIONS - Add all button handlers
@@ -1583,10 +1665,6 @@
             }
         }
 
-        // FORCE CONNECTION STATUS TO CONNECTED
-        setTimeout(() => {
-            updateConnectionStatus(true, 'Connected (Demo Mode)');
-        }, 500);
     </script>
 </body>
 </html>
