@@ -1527,103 +1527,14 @@
             
             // Set consultant name
             document.getElementById('consultantSelector').value = 'Aiman';
-            updateConnectionStatus(false, 'NO AUTH MODE');
-            debugLog('✅ Page should be visible now');
-            return;
             
-            // OLD AUTH CODE (DISABLED)
-            /*
-            debugLog('🚀 Initializing Consultant Module with Production Security...');
+            // Show connected status
+            updateConnectionStatus(true, 'Connected (Demo Mode)');
             
-            try {
-                // STEP 1: Verify authentication and role access (handled by route-guards.js)
-                const hasAccess = await window.VIFMRouteGuards.requireRole('consultant');
-                if (!hasAccess) {
-                    return; // Route guard handles redirection
-                }
-                
-                if (!window.VIFMSupabase) {
-                    throw new Error('Authentication system not available');
-                }
-                
-                // Get current user info
-                const { user, profile } = await window.VIFMSupabase.Auth.getCurrentUser();
-                if (!user || !profile) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                debugLog('✅ Authentication verified for consultant:', profile.full_name);
-                
-                // STEP 2: Set defaults and auto-populate consultant info
-                setTodaysDate();
-                
-                // Auto-set consultant name from authenticated user
-                if (profile.role === 'consultant') {
-                    const consultantInput = document.getElementById('consultantName');
-                    if (consultantInput && profile.full_name) {
-                        consultantInput.value = profile.full_name;
-                        localStorage.setItem('current_consultant', profile.full_name);
-                    }
-                }
-                
-                // STEP 3: Initialize database connection  
-                const connectionTest = await window.VIFMSupabase.Database.testConnection();
-                if (connectionTest.success) {
-                    debugLog('✅ Database connection established');
-                    updateConnectionStatus(true, 'Connected to Supabase');
-                    
-                    // Load live data using centralized system
-                    await loadOpportunities();
-                    
-                } else {
-                    debugLog('⚠️ Database connection failed, using offline mode:', connectionTest.message);
-                    updateConnectionStatus(false, 'Offline mode - ' + connectionTest.message);
-                    
-                    // Load from backup
-                    const backup = localStorage.getItem('training_opportunities_backup');
-                    if (backup) {
-                        opportunities = JSON.parse(backup);
-                        displayTable(opportunities);
-                        debugLog('📦 Loaded from localStorage backup', { count: opportunities.length });
-                    }
-                }
-                
-                // STEP 4: Start periodic connection checks
-                setInterval(async () => {
-                    const test = await window.VIFMSupabase.Database.testConnection();
-                    updateConnectionStatus(test.success, test.message);
-                }, 30000);
-                
-                debugLog('✅ Consultant Module initialization complete for:', profile.full_name);
-                
-                // CRITICAL: Ensure page is visible after successful initialization
-                document.body.style.visibility = 'visible';
-                document.body.style.display = '';
-                
-                // Remove all overlays and loading elements
-                const overlays = document.querySelectorAll('.auth-loading, #auth-overlay');
-                overlays.forEach(overlay => overlay.remove());
-                
-                // Force content container to be visible
-                const contentContainer = document.querySelector('.consultant-dashboard');
-                if (contentContainer) {
-                    contentContainer.style.display = 'block';
-                    contentContainer.style.visibility = 'visible';
-                }
-                
-                debugLog('🎯 FORCED page and content visibility ON');
-                
-            } catch (error) {
-                debugLog('❌ Initialization error:', error);
-                updateConnectionStatus(false, 'Error: ' + error.message);
-                showMessage('error', 'System error: ' + error.message);
-                
-                // If it's an auth error, redirect to login
-                if (error.message.includes('Authentication') || error.message.includes('session')) {
-                    setTimeout(() => window.location.href = 'login.html', 2000);
-                }
-            }
+            // Load some demo data  
+            loadOpportunities();
+            
+            debugLog('✅ Page fully initialized');
         };
     </script>
 </body>
