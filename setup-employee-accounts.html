@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIFM Employee Account Setup</title>
+    
+    <script src="env.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .setup-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .progress {
+            margin: 20px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        .btn {
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background: #0f172a;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .success {
+            color: #16a34a;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        
+        .warning {
+            color: #ea580c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="header">
+            <h1>🏢 VIFM Employee Account Setup</h1>
+            <p>This tool will create Supabase authentication accounts for all VIFM employees</p>
+        </div>
+        
+        <div>
+            <button id="setupBtn" class="btn" onclick="setupAllEmployees()">
+                Create Employee Accounts
+            </button>
+            <button id="testBtn" class="btn" onclick="testEmployeeLogins()" disabled>
+                Test Employee Logins
+            </button>
+            <button id="clearBtn" class="btn" onclick="clearProgress()">
+                Clear Log
+            </button>
+        </div>
+        
+        <div id="progress" class="progress">
+Ready to create employee accounts...\n\nThis will:
+1. Get all employees from the profiles table
+2. Create Supabase authentication accounts for each
+3. Link the auth accounts to employee profiles
+4. Set default passwords for all employees
+
+Click "Create Employee Accounts" to begin.
+        </div>
+    </div>
+
+    <script>
+        let supabaseClient;
+        
+        // Initialize Supabase
+        function initializeSupabase() {
+            try {
+                if (typeof VIFM_CONFIG === 'undefined') {
+                    throw new Error('Configuration not loaded');
+                }
+                
+                supabaseClient = supabase.createClient(
+                    VIFM_CONFIG.SUPABASE_URL,
+                    VIFM_CONFIG.SUPABASE_ANON_KEY
+                );
+                
+                log('✅ Supabase client initialized');
+                return true;
+            } catch (error) {
+                log('❌ Supabase initialization failed: ' + error.message, 'error');
+                return false;
+            }
+        }
+        
+        // Log function
+        function log(message, type = 'info') {
+            const progress = document.getElementById('progress');
+            const timestamp = new Date().toLocaleTimeString();
+            let prefix = '';
+            
+            switch(type) {
+                case 'success': prefix = '✅ '; break;
+                case 'error': prefix = '❌ '; break;
+                case 'warning': prefix = '⚠️ '; break;
+                default: prefix = 'ℹ️ '; break;
+            }
+            
+            progress.textContent += `[${timestamp}] ${prefix}${message}\n`;
+            progress.scrollTop = progress.scrollHeight;
+        }
+        
+        // Clear progress log
+        function clearProgress() {
+            document.getElementById('progress').textContent = 'Log cleared.\n';
+        }
+        
+        // Generate default password for employee
+        function generatePassword(email) {
+            const name = email.split('@')[0].replace('.', '');
+            return name + '2024';
+        }
+        
+        // Setup all employees
+        async function setupAllEmployees() {
+            if (!supabaseClient) {
+                log('Supabase client not initialized', 'error');
+                return;
+            }
+            
+            const setupBtn = document.getElementById('setupBtn');
+            setupBtn.disabled = true;
+            setupBtn.textContent = 'Setting up...';
+            
+            try {
+                log('Starting employee account setup...');
+                
+                // Get all employees from profiles table
+                log('📋 Fetching employee profiles...');
+                const { data: employees, error: fetchError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .order('email');
+                
+                if (fetchError) {
+                    throw new Error('Failed to fetch employees: ' + fetchError.message);
+                }
+                
+                log(`Found ${employees.length} employees to process`, 'success');
+                
+                let successCount = 0;
+                let errorCount = 0;
+                
+                // Process each employee
+                for (const employee of employees) {
+                    const email = employee.email;
+                    const password = generatePassword(email);
+                    
+                    log(`\n👤 Processing: ${employee.full_name} (${email})`);
+                    
+                    try {
+                        // Try to sign up the employee
+                        const { data: authData, error: signUpError } = await supabaseClient.auth.signUp({
+                            email: email,
+                            password: password,
+                            options: {
+                                data: {
+                                    full_name: employee.full_name,
+                                    role: employee.role
+                                }
+                            }
+                        });
+                        
+                        if (signUpError) {
+                            // User might already exist
+                            if (signUpError.message.includes('already registered')) {
+                                log(`   ⚠️ Account already exists: ${email}`, 'warning');
+                                
+                                // Try to update the profile with user_id if we can get it
+                                const { data: signInData } = await supabaseClient.auth.signInWithPassword({
+                                    email: email,
+                                    password: password
+                                });
+                                
+                                if (signInData?.user) {
+                                    // Update profile with user_id
+                                    await supabaseClient
+                                        .from('profiles')
+                                        .update({ user_id: signInData.user.id })
+                                        .eq('id', employee.id);
+                                    
+                                    log(`   ✅ Linked existing account: ${email}`, 'success');
+                                    await supabaseClient.auth.signOut();
+                                }
+                                
+                                successCount++;
+                            } else {
+                                throw signUpError;
+                            }
+                        } else if (authData?.user) {
+                            // New user created successfully
+                            log(`   ✅ Account created: ${email}`, 'success');
+                            
+                            // Update the profile with the new user_id
+                            const { error: updateError } = await supabaseClient
+                                .from('profiles')
+                                .update({ user_id: authData.user.id })
+                                .eq('id', employee.id);
+                            
+                            if (updateError) {
+                                log(`   ⚠️ Profile link failed: ${updateError.message}`, 'warning');
+                            } else {
+                                log(`   ✅ Profile linked successfully`, 'success');
+                            }
+                            
+                            successCount++;
+                        }
+                        
+                        // Small delay to avoid rate limiting
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                    } catch (error) {
+                        log(`   ❌ Failed: ${error.message}`, 'error');
+                        errorCount++;
+                    }
+                }
+                
+                // Summary
+                log(`\n📊 SETUP COMPLETE:`, 'success');
+                log(`✅ Successful: ${successCount}`, 'success');
+                log(`❌ Failed: ${errorCount}`, errorCount > 0 ? 'error' : 'info');
+                
+                if (successCount > 0) {
+                    log('\n🔑 Default Password Pattern: [username]2024');
+                    log('Examples:');
+                    log('  asadeq@viftraining.com → asadeq2024');
+                    log('  aiman@vifm.ae → aiman2024');
+                    log('  amal.kayed@vifm.ae → amalkayed2024');
+                    
+                    document.getElementById('testBtn').disabled = false;
+                }
+                
+            } catch (error) {
+                log('Setup failed: ' + error.message, 'error');
+            } finally {
+                setupBtn.disabled = false;
+                setupBtn.textContent = 'Create Employee Accounts';
+            }
+        }
+        
+        // Test employee logins
+        async function testEmployeeLogins() {
+            if (!supabaseClient) {
+                log('Supabase client not initialized', 'error');
+                return;
+            }
+            
+            log('\n🧪 Testing employee logins...');
+            
+            // Test a few sample accounts
+            const testAccounts = [
+                'asadeq@viftraining.com',
+                'aiman@vifm.ae',
+                'amal.kayed@vifm.ae'
+            ];
+            
+            for (const email of testAccounts) {
+                const password = generatePassword(email);
+                
+                try {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (data?.user) {
+                        log(`✅ Login test passed: ${email}`, 'success');
+                        await supabaseClient.auth.signOut();
+                    } else {
+                        log(`❌ Login test failed: ${email}`, 'error');
+                    }
+                    
+                } catch (error) {
+                    log(`❌ Login test error for ${email}: ${error.message}`, 'error');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            
+            log('🧪 Login testing complete');
+        }
+        
+        // Initialize on page load
+        window.onload = function() {
+            log('🚀 VIFM Employee Account Setup Tool loaded');
+            
+            // Wait for config then initialize
+            setTimeout(() => {
+                if (typeof VIFM_CONFIG !== 'undefined') {
+                    initializeSupabase();
+                } else {
+                    log('⚠️ Configuration not loaded. Please check env.js', 'warning');
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
