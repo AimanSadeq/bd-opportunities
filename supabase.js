@@ -4,8 +4,7 @@
  */
 
 // Initialize Supabase client with environment variables (no hardcoded fallbacks)
-const SUPABASE_URL = getEnvVar('SUPABASE_URL');
-const SUPABASE_ANON_KEY = getEnvVar('SUPABASE_ANON_KEY');
+// Note: Environment variables are loaded lazily to avoid timing issues
 
 // Helper function to get environment variables in Replit
 function getEnvVar(name) {
@@ -32,13 +31,12 @@ function initializeSupabase() {
             throw new Error('Supabase library not loaded. Please ensure @supabase/supabase-js is included.');
         }
         
-        const url = SUPABASE_URL;
-        const key = SUPABASE_ANON_KEY;
+        const url = getEnvVar('SUPABASE_URL');
+        const key = getEnvVar('SUPABASE_ANON_KEY');
         
         if (!url || !key) {
             throw new Error('Supabase credentials missing. Please check SUPABASE_URL and SUPABASE_ANON_KEY in secrets.');
         }
-        
         supabaseClient = window.supabase.createClient(url, key, {
             auth: {
                 autoRefreshToken: true,
@@ -51,7 +49,7 @@ function initializeSupabase() {
         return supabaseClient;
         
     } catch (error) {
-        console.error('❌ Supabase initialization failed:', error);
+        console.error('❌ Supabase initialization failed:', error.message);
         return null;
     }
 }
