@@ -975,15 +975,16 @@
             debugLog('🔄 Saving opportunity to Supabase...', { isUpdate, opportunityId: opportunity.id });
             
             try {
-                if (!supabase) {
+                if (!window.getSupabaseClient) {
                     throw new Error('Supabase not initialized');
                 }
                 
+                const client = window.getSupabaseClient();
                 let result;
                 
                 if (isUpdate) {
                     debugLog('🔄 Updating existing opportunity...');
-                    const { data, error } = await supabase
+                    const { data, error } = await client
                         .from('opportunities')
                         .update({
                             ...opportunity,
@@ -1002,7 +1003,7 @@
                     // Remove id for insert (let Supabase generate it)
                     const { id, ...opportunityWithoutId } = opportunity;
                     
-                    const { data, error } = await supabase
+                    const { data, error } = await client
                         .from('opportunities')
                         .insert(opportunityWithoutId)
                         .select()
@@ -1025,11 +1026,13 @@
             debugLog('🔄 Loading opportunities from Supabase...');
             
             try {
-                if (!supabase) {
+                if (!window.getSupabaseClient) {
                     throw new Error('Supabase not initialized');
                 }
                 
-                const { data, error } = await supabase
+                const client = window.getSupabaseClient();
+                
+                const { data, error } = await client
                     .from('opportunities')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -1455,8 +1458,9 @@
             if (!confirm('Are you sure you want to delete this opportunity?')) return;
             
             try {
-                if (isOnline && supabase && !id.startsWith('local_')) {
-                    await supabase.from('opportunities').delete().eq('id', id);
+                if (isOnline && window.getSupabaseClient && !id.startsWith('local_')) {
+                    const client = window.getSupabaseClient();
+                    await client.from('opportunities').delete().eq('id', id);
                 }
                 
                 opportunities = opportunities.filter(opp => opp.id !== id);
