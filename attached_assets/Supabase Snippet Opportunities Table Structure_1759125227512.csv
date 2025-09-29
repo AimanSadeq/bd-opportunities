@@ -1,0 +1,21 @@
+column_name,data_type
+id,uuid
+course_title,character varying
+client,character varying
+course_date,date
+delegate_name,character varying
+delegate_title,character varying
+city,character varying
+delegate_email,character varying
+phone_number,character varying
+priority,character varying
+status,character varying
+discussion_notes,text
+consultant_action,text
+bd_action,text
+consultant_name,character varying
+created_at,timestamp with time zone
+updated_at,timestamp with time zone
+created_by,uuid
+updated_by,uuid
+user_id,uuid
