@@ -1,0 +1,32 @@
+| schemaname | tablename        | policyname                                                 | permissive | roles    | cmd    | qual                                                                                                                                                                                    |
+| ---------- | ---------------- | ---------------------------------------------------------- | ---------- | -------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| public     | bd_opportunities | Authenticated users can access bd_opportunities            | PERMISSIVE | {public} | ALL    | (auth.role() = 'authenticated'::text)                                                                                                                                                   |
+| public     | bd_opportunities | BD profs can manage BD opportunities                       | PERMISSIVE | {public} | ALL    | (EXISTS ( SELECT 1
+   FROM bd_users
+  WHERE ((bd_users.id = auth.uid()) AND (bd_users.role = ANY (ARRAY['bd_prof'::text, 'admin'::text])))))                                            |
+| public     | bd_opportunities | Consultants can view related BD opportunities              | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+   FROM opportunities o
+  WHERE ((o.id = bd_opportunities.source_opportunity_id) AND (o.user_id = auth.uid()))))                                                     |
+| public     | bd_opportunities | Enable all operations for bd_opportunities                 | PERMISSIVE | {public} | ALL    | true                                                                                                                                                                                    |
+| public     | bd_opportunities | Users can manage bd_opportunities they own or are assigned | PERMISSIVE | {public} | ALL    | (((auth.uid())::text = (user_id)::text) OR ((auth.uid())::text = (assigned_to)::text))                                                                                                  |
+| public     | bd_opportunities | Users can view bd_opportunities they own or are assigned   | PERMISSIVE | {public} | SELECT | (((auth.uid())::text = (user_id)::text) OR ((auth.uid())::text = (assigned_to)::text))                                                                                                  |
+| public     | opportunities    | Authenticated users can access opportunities               | PERMISSIVE | {public} | ALL    | (auth.role() = 'authenticated'::text)                                                                                                                                                   |
+| public     | opportunities    | BD profs can view all opportunities                        | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+   FROM bd_users
+  WHERE ((bd_users.id = auth.uid()) AND (bd_users.role = ANY (ARRAY['bd_prof'::text, 'admin'::text, 'marketing'::text])))))                         |
+| public     | opportunities    | Consultants can delete their own opportunities             | PERMISSIVE | {public} | DELETE | ((created_by = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM users
+  WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['consultant'::text, 'bd'::text]))))))                     |
+| public     | opportunities    | Consultants can insert their own opportunities             | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                    |
+| public     | opportunities    | Consultants can manage their opportunities                 | PERMISSIVE | {public} | ALL    | ((user_id = auth.uid()) OR (EXISTS ( SELECT 1
+   FROM bd_users
+  WHERE ((bd_users.id = auth.uid()) AND (bd_users.role = ANY (ARRAY['bd_prof'::text, 'admin'::text]))))))                |
+| public     | opportunities    | Consultants can update their own opportunities             | PERMISSIVE | {public} | UPDATE | ((created_by = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM users
+  WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['consultant'::text, 'bd'::text]))))))                     |
+| public     | opportunities    | Consultants can view their own opportunities               | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+   FROM users
+  WHERE ((users.id = auth.uid()) AND (((users.role = 'consultant'::text) AND (opportunities.created_by = auth.uid())) OR (users.role = 'bd'::text))))) |
+| public     | opportunities    | Public access for opportunities                            | PERMISSIVE | {public} | ALL    | true                                                                                                                                                                                    |
+| public     | profiles         | Authenticated users can update their own profile           | PERMISSIVE | {public} | UPDATE | ((auth.uid())::text = (id)::text)                                                                                                                                                       |
+| public     | profiles         | Authenticated users can view profiles                      | PERMISSIVE | {public} | SELECT | (auth.role() = 'authenticated'::text)                                                                                                                                                   |
