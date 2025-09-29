@@ -148,24 +148,24 @@ const Auth = {
         localStorage.removeItem('vifm_profile');
     },
     
-    // Sign up new user (Registration) - Secure version
+    // Sign up new user (Registration) - More robust version
     async signUp(email, password, fullName, role) {
         try {
             const client = getSupabaseClient();
             if (!client) throw new Error('Supabase client not available');
             
-            // Validate and sanitize role (prevent privilege escalation)
+            // Client-side role validation (defense in depth)
             const allowedRoles = ['consultant', 'bd'];
             const sanitizedRole = allowedRoles.includes(role) ? role : 'consultant';
             
-            // Create the auth user with email confirmation disabled
+            // Create the auth user - note: email confirmation setting depends on Supabase project config
             const { data: authData, error: authError } = await client.auth.signUp({
                 email: email,
                 password: password,
                 options: {
                     data: {
                         full_name: fullName,
-                        role: sanitizedRole
+                        preferred_role: sanitizedRole // Use preferred_role to distinguish from actual assigned role
                     },
                     emailRedirectTo: window.location.origin + '/login.html'
                 }
@@ -173,6 +173,16 @@ const Auth = {
             
             if (authError) {
                 console.error('Auth signup error:', authError);
+                
+                // Handle common Supabase errors with user-friendly messages
+                if (authError.message.includes('already registered')) {
+                    throw new Error('An account with this email already exists. Please sign in instead.');
+                } else if (authError.message.includes('invalid email')) {
+                    throw new Error('Please provide a valid email address.');
+                } else if (authError.message.includes('password')) {
+                    throw new Error('Password must be at least 6 characters long.');
+                }
+                
                 throw new Error(authError.message || 'Failed to create authentication account');
             }
             
@@ -180,7 +190,7 @@ const Auth = {
                 throw new Error('User creation failed - no user data returned');
             }
             
-            // Check if email confirmation is required
+            // Check if email confirmation is required (no session means confirmation needed)
             if (!authData.session) {
                 return { 
                     success: true, 
@@ -191,37 +201,70 @@ const Auth = {
                 };
             }
             
-            // If we have a session, create the profile immediately
-            const { data: profileData, error: profileError } = await client
-                .from('profiles')
-                .insert({
-                    id: authData.user.id,
-                    email: email,
-                    full_name: fullName,
-                    role: sanitizedRole
-                })
-                .select()
-                .single();
+            // If we have a session, attempt to create the profile
+            // Note: In production, this should be handled by a database trigger
+            try {
+                const { data: profileData, error: profileError } = await client
+                    .from('profiles')
+                    .insert({
+                        id: authData.user.id,
+                        email: email,
+                        full_name: fullName,
+                        role: 'consultant' // Always default to consultant - admin assignment requires manual elevation
+                    })
+                    .select()
+                    .single();
+                    
+                if (profileError) {
+                    console.error('Profile creation error:', profileError);
+                    
+                    // Check if profile already exists (in case of trigger creation)
+                    const { data: existingProfile } = await client
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', authData.user.id)
+                        .single();
+                        
+                    if (existingProfile) {
+                        return { 
+                            success: true, 
+                            user: authData.user, 
+                            profile: existingProfile,
+                            session: authData.session,
+                            message: 'Account created successfully! You can now sign in.'
+                        };
+                    }
+                    
+                    throw new Error('Profile creation failed. Please contact support if this issue persists.');
+                }
                 
-            if (profileError) {
-                console.error('Profile creation error:', profileError);
-                // If profile creation fails and we have an auth user, this is a serious problem
-                throw new Error('Account created but profile setup failed. Please contact support.');
+                return { 
+                    success: true, 
+                    user: authData.user, 
+                    profile: profileData,
+                    session: authData.session,
+                    message: 'Account created successfully! You can now sign in.'
+                };
+                
+            } catch (profileError) {
+                console.error('Profile creation failed:', profileError);
+                
+                // Return success but warn about manual profile creation needed
+                return { 
+                    success: true, 
+                    user: authData.user, 
+                    profile: null,
+                    session: authData.session,
+                    message: 'Account created! If you experience issues signing in, please contact support.',
+                    warning: 'Profile creation delayed - may require manual intervention'
+                };
             }
-            
-            return { 
-                success: true, 
-                user: authData.user, 
-                profile: profileData,
-                session: authData.session,
-                message: 'Account created successfully! You can now sign in.'
-            };
             
         } catch (error) {
             console.error('Registration error:', error);
             return { 
                 success: false, 
-                error: error.message || 'Registration failed'
+                error: error.message || 'Registration failed. Please try again.'
             };
         }
     },
