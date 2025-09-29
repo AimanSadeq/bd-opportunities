@@ -1592,6 +1592,14 @@
                 
                 debugLog('✅ Consultant Module initialization complete for:', profile.full_name);
                 
+                // CRITICAL: Ensure page is visible after successful initialization
+                document.body.style.visibility = 'visible';
+                // Remove any loading overlays
+                const loadingOverlay = document.querySelector('.auth-loading');
+                if (loadingOverlay) {
+                    loadingOverlay.remove();
+                }
+                
             } catch (error) {
                 debugLog('❌ Initialization error:', error);
                 updateConnectionStatus(false, 'Error: ' + error.message);
