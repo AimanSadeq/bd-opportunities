@@ -518,6 +518,19 @@
                     </form>
                 </div>
                 
+                <!-- Admin Quick Login -->
+                <div class="demo-info">
+                    <div class="demo-title">🔧 Admin Quick Login (Temporary)</div>
+                    <div class="demo-users">
+                        <div class="demo-user">
+                            <strong>Admin Access:</strong>
+                            <button onclick="quickAdminLogin()" class="btn btn-secondary" style="margin-top: 8px; padding: 8px 16px; font-size: 12px;">
+                                Login as Admin
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Demo Users Info -->
                 <div class="demo-info">
                     <div class="demo-title">🔐 Demo Credentials (For Testing)</div>
@@ -868,6 +881,61 @@
                 showMessage('success', 'Password reset email sent! Check your inbox and follow the instructions.');
             } else {
                 showMessage('error', 'Failed to send password reset email. Please try again.');
+            }
+        }
+        
+        // Quick admin login bypass (temporary solution)
+        async function quickAdminLogin() {
+            try {
+                if (!supabaseClient) {
+                    showMessage('error', 'Authentication system not ready');
+                    return;
+                }
+                
+                console.log('Attempting quick admin login...');
+                showMessage('info', 'Logging in as admin...');
+                
+                // Get the admin profile from database
+                const { data: profiles, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('email', 'asadeq@viftraining.com')
+                    .eq('role', 'admin')
+                    .single();
+                
+                if (profileError || !profiles) {
+                    console.error('Admin profile not found:', profileError);
+                    showMessage('error', 'Admin profile not found in database');
+                    return;
+                }
+                
+                console.log('✅ Admin profile found:', profiles.full_name);
+                
+                // Create a session-like object for the admin
+                const adminSession = {
+                    user: {
+                        id: profiles.id,
+                        email: profiles.email,
+                        role: profiles.role
+                    },
+                    profile: profiles
+                };
+                
+                // Store admin session
+                sessionStorage.setItem('admin_session', JSON.stringify(adminSession));
+                sessionStorage.setItem('current_user', JSON.stringify(profiles));
+                
+                console.log('✅ Admin session created');
+                showMessage('success', 'Admin login successful! Redirecting...');
+                
+                // Redirect to admin dashboard
+                setTimeout(() => {
+                    window.location.href = '/vifm-main-menu.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Quick admin login error:', error);
+                showMessage('error', 'Admin login failed. Please try again.');
             }
         }
         
