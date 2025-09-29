@@ -1141,7 +1141,7 @@
                 debugLog('📋 Opportunity object created', opportunity);
                 
                 // Try to save to Supabase first
-                if (isOnline && supabase) {
+                if (isOnline && window.getSupabaseClient) {
                     debugLog('🌐 Attempting to save to Supabase...');
                     
                     const savedOpp = await saveOpportunityToSupabase(opportunity, !!editingId);
