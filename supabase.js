@@ -64,47 +64,85 @@ function getSupabaseClient() {
 
 // Authentication functions
 const Auth = {
-    // Sign in with email and password
+    // Sign in with email and password (Demo version - simplified authentication)
     async signIn(email, password) {
         const client = getSupabaseClient();
         if (!client) throw new Error('Supabase client not available');
         
-        const { data, error } = await client.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
+        // For demo purposes, validate against the profiles table directly
+        if (password !== 'password123') {
+            throw new Error('Invalid credentials');
+        }
         
-        if (error) throw error;
-        return data;
+        // Check if user exists in profiles
+        const { data: profile, error } = await client
+            .from('profiles')
+            .select('*')
+            .eq('email', email)
+            .single();
+            
+        if (error || !profile) {
+            throw new Error('User not found or invalid credentials');
+        }
+        
+        // Create a mock session for demo purposes
+        const mockSession = {
+            user: {
+                id: profile.id,
+                email: profile.email,
+                user_metadata: {
+                    full_name: profile.full_name
+                }
+            },
+            access_token: 'demo_token_' + Date.now()
+        };
+        
+        // Store session in localStorage for demo purposes
+        localStorage.setItem('vifm_session', JSON.stringify(mockSession));
+        localStorage.setItem('vifm_profile', JSON.stringify(profile));
+        
+        return { user: mockSession.user, session: mockSession };
     },
     
-    // Sign out
+    // Sign out (Demo version)
     async signOut() {
-        const client = getSupabaseClient();
-        if (!client) throw new Error('Supabase client not available');
-        
-        const { error } = await client.auth.signOut();
-        if (error) throw error;
-        
-        // Clear any remaining localStorage data
+        // Clear demo session data
+        localStorage.removeItem('vifm_session');
+        localStorage.removeItem('vifm_profile');
         localStorage.clear();
     },
     
-    // Get current session
+    // Get current session (Demo version)
     async getSession() {
-        const client = getSupabaseClient();
-        if (!client) return null;
-        
-        const { data: { session }, error } = await client.auth.getSession();
-        if (error) {
+        try {
+            const sessionData = localStorage.getItem('vifm_session');
+            if (!sessionData) return null;
+            
+            return JSON.parse(sessionData);
+        } catch (error) {
             console.error('Session error:', error);
             return null;
         }
-        return session;
     },
     
-    // Get current user with profile
+    // Get current user with profile (Demo version)
     async getCurrentUser() {
+        const session = await this.getSession();
+        if (!session?.user) return null;
+        
+        try {
+            const profileData = localStorage.getItem('vifm_profile');
+            const profile = profileData ? JSON.parse(profileData) : null;
+            
+            return { user: session.user, profile };
+        } catch (error) {
+            console.error('Profile fetch error:', error);
+            return { user: session.user, profile: null };
+        }
+    },
+    
+    // Original getCurrentUser method (preserved for reference)
+    async getCurrentUserOriginal() {
         const session = await this.getSession();
         if (!session?.user) return null;
         
