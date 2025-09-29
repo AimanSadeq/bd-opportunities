@@ -57,59 +57,8 @@
     <script src="supabase.js"></script>
     
     <script>
-        // Production authentication check
-        async function initializePortal() {
-            try {
-                // Check for valid session
-                const sessionData = sessionStorage.getItem('vifm_session');
-                
-                if (sessionData) {
-                    const session = JSON.parse(sessionData);
-                    
-                    // Check if session is still valid
-                    if (new Date(session.expires_at) > new Date()) {
-                        // Valid session found, redirect based on role
-                        const redirectUrl = getRedirectUrlForRole(session.profile.role);
-                        window.location.href = redirectUrl;
-                        return;
-                    } else {
-                        // Session expired, clear it
-                        sessionStorage.removeItem('vifm_session');
-                    }
-                }
-                
-                // Clear any old localStorage sessions
-                if (localStorage.getItem('session_token') || localStorage.getItem('user_data')) {
-                    localStorage.removeItem('session_token');
-                    localStorage.removeItem('user_data');
-                    console.log('Cleared legacy session data');
-                }
-                
-                // No valid session, redirect to login
-                window.location.href = 'login.html';
-                
-            } catch (error) {
-                console.error('Portal initialization error:', error);
-                window.location.href = 'login.html';
-            }
-        }
-        
-        // Get redirect URL based on user role
-        function getRedirectUrlForRole(role) {
-            switch (role) {
-                case 'consultant':
-                    return 'phase1.html';
-                case 'bd':
-                    return 'bd-module.html';
-                case 'admin':
-                    return 'vifm-main-menu.html';
-                default:
-                    return 'vifm-main-menu.html';
-            }
-        }
-        
-        // Initialize when page loads
-        initializePortal();
+        // Simple redirect to login
+        window.location.replace('login.html');
     </script>
 </body>
 </html>
