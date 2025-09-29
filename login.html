@@ -470,49 +470,30 @@
             loginBtn.innerHTML = '<span class="spinner"></span> Signing in...';
             
             try {
-                // Check if VIFMSupabase is available
-                if (!window.VIFMSupabase) {
+                // Check if Auth is available
+                if (!window.Auth) {
                     throw new Error('Authentication system not available. Please refresh the page.');
                 }
                 
-                // For demo purposes, we'll check if the user exists in our profiles table
-                // and create a temporary session. In production, you'd use Supabase Auth.
-                const profiles = await window.VIFMSupabase.Database.select('profiles', {
-                    filter: { email: email }
-                });
+                // Use the Auth.signIn method I created
+                const result = await window.Auth.signIn(email, password);
                 
-                if (profiles.length === 0) {
-                    throw new Error('User not found. Please check your email address.');
+                if (!result || !result.user) {
+                    throw new Error('Login failed. Please try again.');
                 }
-                
-                const userProfile = profiles[0];
-                
-                // Verify password (in demo, we accept 'password123' for all users)
-                if (password !== 'password123') {
-                    throw new Error('Invalid password. Demo password is: password123');
-                }
-                
-                // Create a session token for this demo
-                const sessionData = {
-                    user: {
-                        id: userProfile.id,
-                        email: userProfile.email,
-                        user_metadata: {
-                            full_name: userProfile.full_name
-                        }
-                    },
-                    profile: userProfile,
-                    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
-                };
-                
-                // Store session securely (in production, Supabase handles this)
-                sessionStorage.setItem('vifm_session', JSON.stringify(sessionData));
                 
                 showMessage('success', 'Login successful! Redirecting...');
                 
+                // Get user profile to determine role
+                const userProfile = JSON.parse(localStorage.getItem('vifm_profile'));
+                
                 // Redirect based on role
                 setTimeout(() => {
-                    redirectBasedOnRole(userProfile.role);
+                    if (userProfile && userProfile.role) {
+                        redirectBasedOnRole(userProfile.role);
+                    } else {
+                        redirectBasedOnRole('consultant'); // default fallback
+                    }
                 }, 1000);
                 
             } catch (error) {
