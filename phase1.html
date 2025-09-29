@@ -17,7 +17,8 @@
     
     <!-- Pre-render Security: Hide content until authentication verified -->
     <style>
-        body { visibility: hidden !important; }
+        body:not(.auth-verified) { visibility: hidden !important; }
+        body.auth-verified { visibility: visible !important; }
         .auth-loading {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #010131 0%, #121140 100%);
@@ -1591,7 +1592,7 @@
                 debugLog('✅ Consultant Module initialization complete for:', profile.full_name);
                 
                 // CRITICAL: Ensure page is visible after successful initialization
-                document.body.style.visibility = 'visible';
+                document.body.classList.add('auth-verified');
                 document.body.style.display = '';
                 
                 // Remove all overlays and loading elements
