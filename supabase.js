@@ -367,3 +367,6 @@ window.VIFMSupabase = {
     getSupabaseClient,
     initializeSupabase
 };
+
+// Also export Auth directly for login function compatibility
+window.Auth = Auth;
