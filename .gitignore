@@ -33,3 +33,7 @@ npm-debug.log*
 # Credentials (never commit these!)
 credentials.json
 secrets.json
+env.js
+env.js
+credentials.json
+secrets.json

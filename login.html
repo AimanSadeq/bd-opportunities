@@ -6,15 +6,7 @@
     <title>VIFM Portal - Login</title>
     
     <!-- Production Environment Configuration -->
-    <meta name="supabase-url" content="">
-    <meta name="supabase-anon-key" content="">
-    <script>
-        // Environment configuration injection point for production deployment
-        window.env = window.env || {
-            SUPABASE_URL: document.querySelector('meta[name="supabase-url"]')?.content || '',
-            SUPABASE_ANON_KEY: document.querySelector('meta[name="supabase-anon-key"]')?.content || ''
-        };
-    </script>
+    <script src="env-template.js"></script>
     
     <!-- Google Fonts - Open Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">

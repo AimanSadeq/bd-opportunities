@@ -5,10 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIFM Business Development Portal - Dashboard</title>
     
+    <!-- Production Environment Configuration -->
+    <script src="env-template.js"></script>
+    
     <!-- Add Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- VIFM Supabase Configuration -->
     <script src="supabase.js"></script>
+    <!-- Universal Route Guards -->
+    <script src="route-guards.js"></script>
+    
+    <!-- Pre-render Security: Hide content until authentication verified -->
+    <style>
+        body { visibility: hidden !important; }
+        .auth-loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #010131 0%, #121140 100%);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-family: 'Open Sans', Arial, sans-serif; z-index: 99999; visibility: visible !important;
+        }
+    </style>
+    
+    <!-- Pre-render Authentication - Runs IMMEDIATELY -->
+    <script>
+        document.write('<div class="auth-loading"><div style="text-align: center;"><div style="font-size: 2rem; margin-bottom: 1rem;">🏢</div><h2 style="margin-bottom: 0.5rem;">Verifying Access...</h2><p style="opacity: 0.8;">Loading VIFM Portal...</p></div></div>');
+        
+        // Execute pre-render security immediately
+        (async function() {
+            await window.VIFMRouteGuards.executePreRenderSecurity();
+        })();
+    </script>
     
     <!-- Google Fonts - Open Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -741,10 +767,7 @@
         // ==================================================
         
         window.onload = async function() {
-            // Check authentication
-            if (!(await checkAuth())) {
-                return;
-            }
+            // Authentication already verified by pre-render guards
             
             // Initialize Supabase
             if (!initializeSupabase()) {

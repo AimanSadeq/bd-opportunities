@@ -3,14 +3,9 @@
  * Secure production-grade authentication and database client
  */
 
-// Initialize Supabase client with environment variables
-const SUPABASE_URL = window.location.hostname === 'localhost' 
-    ? 'https://tdzwnqhuijdmqnzflvhz.supabase.co' // Fallback for local development
-    : getEnvVar('SUPABASE_URL');
-
-const SUPABASE_ANON_KEY = window.location.hostname === 'localhost'
-    ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' // Fallback for local development  
-    : getEnvVar('SUPABASE_ANON_KEY');
+// Initialize Supabase client with environment variables (no hardcoded fallbacks)
+const SUPABASE_URL = getEnvVar('SUPABASE_URL');
+const SUPABASE_ANON_KEY = getEnvVar('SUPABASE_ANON_KEY');
 
 // Helper function to get environment variables in Replit
 function getEnvVar(name) {
