@@ -501,12 +501,13 @@
                     return false;
                 }
                 
-                // Set current user from session
+                // Set current user from session (compatible with dev bypass)
+                const profile = session.profile || session.user;
                 currentUser = {
                     id: session.user.id,
                     email: session.user.email,
-                    full_name: session.profile.full_name,
-                    role: session.profile.role
+                    full_name: profile.full_name || 'Admin User',
+                    role: profile.role || 'admin'
                 };
                 
                 // Clean up any old localStorage data
