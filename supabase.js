@@ -75,15 +75,27 @@ const Auth = {
         }
         
         // Check if user exists in profiles
+        console.log('Searching for user with email:', email);
+        
         const { data: profile, error } = await client
             .from('profiles')
             .select('*')
             .eq('email', email)
             .single();
             
-        if (error || !profile) {
-            throw new Error('User not found or invalid credentials');
+        console.log('Database query result:', { profile, error });
+        
+        if (error) {
+            console.error('Database error:', error);
+            throw new Error(`Database error: ${error.message}`);
         }
+        
+        if (!profile) {
+            console.error('No profile found for email:', email);
+            throw new Error('User not found. Please check your email address.');
+        }
+        
+        console.log('User profile found:', profile.email, 'Role:', profile.role);
         
         // Create a mock session for demo purposes
         const mockSession = {

@@ -451,8 +451,18 @@
     <script>
         // Production Authentication System using Supabase
         
+        // System ready flag
+        let systemReady = false;
+        
         // Wait for everything to load before enabling login
         document.addEventListener('DOMContentLoaded', function() {
+            // Disable the login button initially
+            const loginButton = document.querySelector('button[type="submit"]');
+            if (loginButton) {
+                loginButton.disabled = true;
+                loginButton.textContent = 'Loading...';
+            }
+            
             setTimeout(() => {
                 console.log('DOM loaded, checking Auth availability...');
                 console.log('window.Auth:', !!window.Auth);
@@ -461,15 +471,31 @@
                 
                 if (window.Auth || window.VIFMSupabase?.Auth) {
                     console.log('✅ Authentication system ready!');
+                    systemReady = true;
+                    
+                    // Enable the login button
+                    if (loginButton) {
+                        loginButton.disabled = false;
+                        loginButton.textContent = 'Sign In';
+                    }
                 } else {
                     console.error('❌ Authentication system not available');
+                    if (loginButton) {
+                        loginButton.textContent = 'System Error';
+                    }
                 }
-            }, 1000);
+            }, 1500);
         });
         
         // Handle login with proper Supabase authentication
         async function handleLogin(event) {
             event.preventDefault();
+            
+            // Check if system is ready
+            if (!systemReady) {
+                showMessage('error', 'System is still loading. Please wait a moment...');
+                return;
+            }
             
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
