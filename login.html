@@ -806,55 +806,11 @@
             }
         }
         
-        // Create admin user if doesn't exist
-        async function createAdminUser() {
-            try {
-                if (!supabaseClient) {
-                    console.log('Supabase client not ready for admin creation');
-                    return;
-                }
-                
-                console.log('Checking/creating admin user...');
-                
-                // Try to sign up the admin user
-                const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
-                    email: 'asadeq@viftraining.com',
-                    password: 'admin123'
-                });
-                
-                if (signUpError && !signUpError.message.includes('already')) {
-                    console.error('Admin user creation failed:', signUpError);
-                    return;
-                }
-                
-                if (signUpData.user) {
-                    console.log('Admin user created/exists:', signUpData.user.id);
-                    
-                    // Update the profile with the user_id
-                    const { error: updateError } = await supabaseClient
-                        .from('profiles')
-                        .update({ user_id: signUpData.user.id })
-                        .eq('email', 'asadeq@viftraining.com');
-                    
-                    if (updateError) {
-                        console.error('Profile update failed:', updateError);
-                    } else {
-                        console.log('✅ Admin profile linked to Supabase auth');
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Admin setup error:', error);
-            }
-        }
-        
         // Initialize and check for existing session
         window.onload = async function() {
-            console.log('VIFM Production Login System initializing...');
+            console.log('VIFM Production System initializing...');
             
             try {
-                // Auto-redirect disabled per user request - users can manually navigate
-                
                 // Check for old localStorage sessions and clear them
                 if (localStorage.getItem('session_token') || localStorage.getItem('user_data')) {
                     localStorage.removeItem('session_token');
@@ -862,15 +818,10 @@
                     console.log('Cleared old localStorage session data');
                 }
                 
-                // Initialize Supabase and create admin user if needed
-                if (initializeSupabase()) {
-                    await createAdminUser();
-                }
-                
-                console.log('✅ VIFM Production Login System ready');
+                console.log('✅ VIFM Production System ready');
                 
             } catch (error) {
-                console.error('Login system initialization error:', error);
+                console.error('System initialization error:', error);
                 showMessage('error', 'System initialization error. Please refresh the page.');
             }
         };
