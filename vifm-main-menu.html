@@ -539,34 +539,88 @@
         // USER INTERFACE FUNCTIONS
         // ==================================================
         
-        // Global user object
+        // Global user object - single source of truth
         let currentUser = null;
         
-        // Load user data from session storage
-        function loadCurrentUser() {
+        // Normalize and load session data
+        function normalizeSession() {
             try {
-                // Try to get user from session storage (from admin quick login)
-                const storedUser = sessionStorage.getItem('current_user');
-                if (storedUser) {
-                    currentUser = JSON.parse(storedUser);
-                    console.log('✅ User loaded from session:', currentUser.full_name);
-                    return true;
+                // Priority 1: Standard VIFM session
+                const vifmSession = sessionStorage.getItem('vifm_session');
+                if (vifmSession) {
+                    const session = JSON.parse(vifmSession);
+                    const user = session.profile || session.user;
+                    if (user && user.full_name && user.role) {
+                        console.log('✅ User loaded from VIFM session:', user.full_name);
+                        return user;
+                    }
                 }
                 
-                // Fallback: try to get from admin session
+                // Priority 2: Quick admin login session
+                const currentUserData = sessionStorage.getItem('current_user');
+                if (currentUserData) {
+                    const user = JSON.parse(currentUserData);
+                    if (user && user.full_name && user.role) {
+                        console.log('✅ User loaded from current_user session:', user.full_name);
+                        return user;
+                    }
+                }
+                
+                // Priority 3: Admin session fallback
                 const adminSession = sessionStorage.getItem('admin_session');
                 if (adminSession) {
                     const session = JSON.parse(adminSession);
-                    currentUser = session.profile;
-                    console.log('✅ User loaded from admin session:', currentUser.full_name);
-                    return true;
+                    const user = session.profile;
+                    if (user && user.full_name && user.role) {
+                        console.log('✅ User loaded from admin session:', user.full_name);
+                        return user;
+                    }
                 }
                 
-                console.error('❌ No user data found in session storage');
-                return false;
+                // No valid session found
+                console.error('❌ No valid user session found');
+                return null;
                 
             } catch (error) {
-                console.error('❌ Error loading user data:', error);
+                console.error('❌ Error normalizing session:', error);
+                return null;
+            }
+        }
+        
+        // Initialize the application
+        async function initializeApp() {
+            try {
+                // Normalize and load user session
+                currentUser = normalizeSession();
+                if (!currentUser) {
+                    console.error('❌ No valid user session, redirecting to login');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                // Initialize Supabase
+                if (!initializeSupabase()) {
+                    console.warn('⚠️ Failed to connect to database. Some features may not work.');
+                }
+                
+                // Load user interface
+                loadUserInfo();
+                await loadStats();
+                loadNavigation();
+                
+                // Remove loading overlay and show content
+                const loadingOverlay = document.querySelector('.auth-loading');
+                if (loadingOverlay) {
+                    loadingOverlay.remove();
+                }
+                document.body.style.visibility = 'visible';
+                
+                console.log('✅ Dashboard loaded for:', currentUser.full_name, '(' + currentUser.role + ')');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ App initialization failed:', error);
+                window.location.href = 'login.html';
                 return false;
             }
         }
@@ -806,25 +860,7 @@
         
         window.onload = async function() {
             // Authentication already verified by pre-render guards
-            
-            // Load user data from session storage first
-            if (!loadCurrentUser()) {
-                console.error('❌ Failed to load user data, redirecting to login');
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            // Initialize Supabase
-            if (!initializeSupabase()) {
-                console.warn('Failed to connect to database. Some features may not work.');
-            }
-            
-            // Load user interface
-            loadUserInfo();
-            await loadStats();
-            loadNavigation();
-            
-            console.log('✅ Dashboard loaded for:', currentUser.full_name, '(', currentUser.role, ')');
+            await initializeApp();
         };
     </script>
 </body>
