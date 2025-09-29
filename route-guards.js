@@ -168,7 +168,7 @@ window.VIFMRouteGuards = {
     }
 };
 
-// Universal Pre-render Security System
+// Universal Pre-render Security System - Updated Version
 window.VIFMRouteGuards.executePreRenderSecurity = async function(requiredRole = null) {
     console.log('🛡️ Executing immediate pre-render security check...');
     
@@ -194,7 +194,13 @@ window.VIFMRouteGuards.executePreRenderSecurity = async function(requiredRole = 
         }
         
         // Check authentication for protected pages
-        const { user, profile } = await window.VIFMSupabase.Auth.getCurrentUser();
+        const currentUserResult = await window.VIFMSupabase.Auth.getCurrentUser();
+        if (!currentUserResult) {
+            this.redirectToLogin('Authentication required');
+            return false;
+        }
+        
+        const { user, profile } = currentUserResult;
         if (!user || !profile) {
             this.redirectToLogin('Authentication required');
             return false;

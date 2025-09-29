@@ -315,7 +315,7 @@ const Database = {
     // Test connection
     async testConnection() {
         try {
-            const data = await this.select('profiles', { limit: 1 });
+            const data = await this.select('opportunities', { limit: 1 });
             return { success: true, message: 'Connected to Supabase', data };
         } catch (error) {
             return { success: false, message: error.message };
