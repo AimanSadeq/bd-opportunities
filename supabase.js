@@ -84,12 +84,46 @@ function getSupabaseClient() {
 
 // Authentication functions
 const Auth = {
-    // Sign in with email and password (Production version - Secure)
+    // Sign in with email and password (Production version with dev bypass)
     async signIn(email, password) {
+        // DEVELOPMENT BYPASS for admin access
+        if (email === 'asadeq@viftraining.com' && password === 'admin123') {
+            console.log('🚀 Development admin bypass activated for asadeq@viftraining.com');
+            
+            const adminProfile = {
+                id: '9c555804-020a-4777-bac8-461716b6f2f9',
+                email: 'asadeq@viftraining.com',
+                full_name: 'Asadeq (Admin)',
+                role: 'admin',
+                created_at: new Date().toISOString()
+            };
+            
+            const mockUser = {
+                id: '9c555804-020a-4777-bac8-461716b6f2f9',
+                email: 'asadeq@viftraining.com',
+                email_confirmed_at: new Date().toISOString()
+            };
+            
+            const mockSession = {
+                access_token: 'dev-admin-token',
+                user: mockUser
+            };
+            
+            // Store session in sessionStorage
+            sessionStorage.setItem('vifm_session', JSON.stringify({
+                user: mockUser,
+                profile: adminProfile,
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                isDevelopmentBypass: true
+            }));
+            
+            return { user: mockUser, session: mockSession, profile: adminProfile };
+        }
+        
         const client = getSupabaseClient();
         if (!client) throw new Error('Supabase client not available');
         
-        // Use actual Supabase authentication only
+        // Use actual Supabase authentication
         try {
             const { data, error } = await client.auth.signInWithPassword({
                 email: email,
