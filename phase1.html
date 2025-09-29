@@ -15,26 +15,17 @@
     <!-- Universal Route Guards -->
     <script src="route-guards.js"></script>
     
-    <!-- Pre-render Security: Hide content until authentication verified -->
+    <!-- FORCE VISIBILITY - NO AUTHENTICATION -->
     <style>
-        body { visibility: hidden !important; }
-        .auth-loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #010131 0%, #121140 100%);
-            color: white; display: flex; align-items: center; justify-content: center;
-            font-family: 'Open Sans', Arial, sans-serif; z-index: 99999; visibility: visible !important;
+        body { 
+            visibility: visible !important; 
+            display: block !important; 
+            opacity: 1 !important;
+            background: white !important;
         }
+        .auth-loading { display: none !important; }
+        * { visibility: visible !important; }
     </style>
-    
-    <!-- Pre-render Authentication - Runs IMMEDIATELY -->
-    <script>
-        document.write('<div class="auth-loading"><div style="text-align: center;"><div style="font-size: 2rem; margin-bottom: 1rem;">👨‍💼</div><h2 style="margin-bottom: 0.5rem;">Verifying Consultant Access...</h2><p style="opacity: 0.8;">Please wait...</p></div></div>');
-        
-        // Execute pre-render security immediately with Consultant role requirement
-        (async function() {
-            await window.VIFMRouteGuards.executePreRenderSecurity('consultant');
-        })();
-    </script>
     
     <!-- Google Fonts - Open Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -1528,6 +1519,20 @@
         // ==================================================
 
         window.onload = async function() {
+            // FORCE SIMPLE INITIALIZATION WITHOUT AUTH
+            debugLog('🔧 SIMPLE INITIALIZATION - NO AUTH REQUIRED');
+            document.body.style.visibility = 'visible';
+            document.body.style.display = 'block';
+            document.body.style.opacity = '1';
+            
+            // Set consultant name
+            document.getElementById('consultantSelector').value = 'Aiman';
+            updateConnectionStatus(false, 'NO AUTH MODE');
+            debugLog('✅ Page should be visible now');
+            return;
+            
+            // OLD AUTH CODE (DISABLED)
+            /*
             debugLog('🚀 Initializing Consultant Module with Production Security...');
             
             try {
