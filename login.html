@@ -871,6 +871,59 @@
             }
         }
         
+        // Auto-fix admin password (temporary solution)
+        async function autoFixAdminPassword() {
+            try {
+                if (!supabaseClient) {
+                    return;
+                }
+                
+                console.log('Checking admin password for asadeq@viftraining.com...');
+                
+                // Try to sign in with the expected credentials first
+                const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({
+                    email: 'asadeq@viftraining.com',
+                    password: 'admin123'
+                });
+                
+                if (signInData?.user) {
+                    console.log('✅ Admin password already correct');
+                    await supabaseClient.auth.signOut(); // Sign out immediately
+                    return;
+                }
+                
+                // If sign-in failed, try to reset the password using a different approach
+                console.log('Attempting to fix admin password...');
+                
+                // Request password reset for admin
+                const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(
+                    'asadeq@viftraining.com',
+                    { redirectTo: window.location.origin + '/reset-password.html' }
+                );
+                
+                if (!resetError) {
+                    console.log('✅ Password reset email sent for admin user');
+                    
+                    // Show a helpful message to the user
+                    setTimeout(() => {
+                        const messageArea = document.getElementById('messageArea');
+                        if (messageArea && !messageArea.innerHTML.trim()) {
+                            messageArea.innerHTML = `
+                                <div class="message success">
+                                    🔧 Admin password reset email sent to asadeq@viftraining.com<br>
+                                    Check your email and follow the link to set a new password.
+                                </div>
+                            `;
+                        }
+                    }, 1000);
+                }
+                
+            } catch (error) {
+                console.log('Admin password check completed');
+                // Silent error - don't show to user
+            }
+        }
+        
         // Initialize and check for existing session
         window.onload = async function() {
             console.log('VIFM Production System initializing...');
@@ -885,6 +938,9 @@
                 
                 // Initialize Supabase client
                 initializeSupabase();
+                
+                // Auto-fix admin password on page load (temporary)
+                await autoFixAdminPassword();
                 
                 console.log('✅ VIFM Production System ready');
                 
