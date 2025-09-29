@@ -838,7 +838,7 @@
                 console.log('Requesting password reset for:', email);
                 
                 const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/login.html'
+                    redirectTo: window.location.origin + '/reset-password.html'
                 });
                 
                 if (error) {
