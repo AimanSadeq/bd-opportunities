@@ -900,7 +900,6 @@
                     .from('profiles')
                     .select('*')
                     .eq('email', 'asadeq@viftraining.com')
-                    .eq('role', 'admin')
                     .single();
                 
                 if (profileError || !profiles) {
