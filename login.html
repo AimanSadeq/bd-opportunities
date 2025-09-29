@@ -399,6 +399,24 @@
                 font-size: 1.5rem;
             }
         }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -451,6 +469,10 @@
                         
                         <button type="submit" id="loginBtn" class="btn btn-primary">
                             Sign In
+                        </button>
+                        
+                        <button type="button" onclick="resetPassword()" class="btn btn-secondary" style="margin-top: 10px;">
+                            Reset Password
                         </button>
                     </form>
                 </div>
@@ -806,6 +828,49 @@
             }
         }
         
+        // Manual password reset for admin user
+        async function requestPasswordReset(email) {
+            try {
+                if (!supabaseClient) {
+                    throw new Error('Authentication system not ready');
+                }
+                
+                console.log('Requesting password reset for:', email);
+                
+                const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/login.html'
+                });
+                
+                if (error) {
+                    console.error('Password reset request failed:', error);
+                    return false;
+                } else {
+                    console.log('✅ Password reset email sent to:', email);
+                    return true;
+                }
+                
+            } catch (error) {
+                console.error('Password reset error:', error);
+                return false;
+            }
+        }
+        
+        // Reset password function called by button
+        async function resetPassword() {
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showMessage('error', 'Please enter your email address first');
+                return;
+            }
+            
+            const success = await requestPasswordReset(email);
+            if (success) {
+                showMessage('success', 'Password reset email sent! Check your inbox and follow the instructions.');
+            } else {
+                showMessage('error', 'Failed to send password reset email. Please try again.');
+            }
+        }
+        
         // Initialize and check for existing session
         window.onload = async function() {
             console.log('VIFM Production System initializing...');
@@ -817,6 +882,9 @@
                     localStorage.removeItem('user_data');
                     console.log('Cleared old localStorage session data');
                 }
+                
+                // Initialize Supabase client
+                initializeSupabase();
                 
                 console.log('✅ VIFM Production System ready');
                 
