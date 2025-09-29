@@ -834,24 +834,7 @@
             console.log('VIFM Production Login System initializing...');
             
             try {
-                // TEMPORARILY DISABLED: Check if already logged in with new session system
-                // const sessionData = sessionStorage.getItem('vifm_session');
-                
-                // if (sessionData) {
-                //     const session = JSON.parse(sessionData);
-                    
-                //     // Check if session is still valid
-                //     if (new Date(session.expires_at) > new Date()) {
-                //         showMessage('info', 'You are already logged in. Redirecting...');
-                //         setTimeout(() => {
-                //             redirectBasedOnRole(session.profile.role);
-                //         }, 1000);
-                //         return;
-                //     } else {
-                //         // Session expired, clear it
-                //         sessionStorage.removeItem('vifm_session');
-                //     }
-                // }
+                // Auto-redirect disabled per user request - users can manually navigate
                 
                 // Check for old localStorage sessions and clear them
                 if (localStorage.getItem('session_token') || localStorage.getItem('user_data')) {
