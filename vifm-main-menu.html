@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIFM Business Development Portal - Dashboard</title>
     
+    <!-- Force cache refresh -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <!-- Production Environment Configuration -->
     <script src="env.js"></script>
     
@@ -590,36 +595,52 @@
         // Initialize the application
         async function initializeApp() {
             try {
+                console.log('🔄 Initializing VIFM Dashboard...');
+                
                 // Normalize and load user session
                 currentUser = normalizeSession();
                 if (!currentUser) {
-                    console.error('❌ No valid user session, redirecting to login');
+                    console.error('❌ No valid user session found');
+                    console.log('Available sessions:', {
+                        vifm_session: sessionStorage.getItem('vifm_session') ? 'EXISTS' : 'NULL',
+                        current_user: sessionStorage.getItem('current_user') ? 'EXISTS' : 'NULL', 
+                        admin_session: sessionStorage.getItem('admin_session') ? 'EXISTS' : 'NULL'
+                    });
+                    console.log('Redirecting to login...');
                     window.location.href = 'login.html';
                     return false;
                 }
+                
+                console.log('✅ User session loaded:', currentUser.full_name, '(' + currentUser.role + ')');
                 
                 // Initialize Supabase
                 if (!initializeSupabase()) {
                     console.warn('⚠️ Failed to connect to database. Some features may not work.');
                 }
                 
-                // Load user interface
+                // Load user interface with error handling
+                console.log('🔄 Loading user interface...');
                 loadUserInfo();
+                console.log('🔄 Loading statistics...');
                 await loadStats();
+                console.log('🔄 Loading navigation...');
                 loadNavigation();
                 
                 // Remove loading overlay and show content
+                console.log('🔄 Revealing dashboard...');
                 const loadingOverlay = document.querySelector('.auth-loading');
                 if (loadingOverlay) {
                     loadingOverlay.remove();
                 }
                 document.body.style.visibility = 'visible';
                 
-                console.log('✅ Dashboard loaded for:', currentUser.full_name, '(' + currentUser.role + ')');
+                console.log('✅ Dashboard fully loaded for:', currentUser.full_name, '(' + currentUser.role + ')');
                 return true;
                 
             } catch (error) {
                 console.error('❌ App initialization failed:', error);
+                console.error('Error details:', error.message);
+                console.error('Error stack:', error.stack);
                 window.location.href = 'login.html';
                 return false;
             }
