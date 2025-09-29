@@ -365,6 +365,42 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Form Toggle */
+        .form-toggle {
+            display: flex;
+            margin-bottom: 2rem;
+            background: var(--background);
+            border-radius: 10px;
+            padding: 0.25rem;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .toggle-btn.active {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 2px 10px rgba(1, 1, 49, 0.2);
+        }
+        
+        .form-container {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Responsive */
         @media (max-width: 480px) {
             .card-body {
@@ -398,30 +434,80 @@
             </div>
             
             <div class="card-body">
-                <h2 class="form-title">Sign In to Your Account</h2>
+                <!-- Form Toggle Buttons -->
+                <div class="form-toggle">
+                    <button type="button" class="toggle-btn active" onclick="showLoginForm()" id="loginTab">Sign In</button>
+                    <button type="button" class="toggle-btn" onclick="showRegisterForm()" id="registerTab">Create Account</button>
+                </div>
                 
                 <div id="messageArea"></div>
                 
-                <form id="loginForm" onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" id="email" class="form-input" 
-                               placeholder="your.email@vifm.ae" required>
-                    </div>
+                <!-- Login Form -->
+                <div id="loginFormContainer" class="form-container">
+                    <h2 class="form-title">Sign In to Your Account</h2>
                     
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <div class="input-icon">
-                            <input type="password" id="password" class="form-input" 
-                                   placeholder="Enter your password" required>
-                            <i onclick="togglePassword()" style="cursor: pointer;">👁️</i>
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="email" class="form-input" 
+                                   placeholder="your.email@vifm.ae" required>
                         </div>
-                    </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <div class="input-icon">
+                                <input type="password" id="password" class="form-input" 
+                                       placeholder="Enter your password" required>
+                                <i onclick="togglePassword()" style="cursor: pointer;">👁️</i>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" id="loginBtn" class="btn btn-primary">
+                            Sign In
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Registration Form -->
+                <div id="registerFormContainer" class="form-container hidden">
+                    <h2 class="form-title">Create Your VIFM Account</h2>
                     
-                    <button type="submit" id="loginBtn" class="btn btn-primary">
-                        Sign In
-                    </button>
-                </form>
+                    <form id="registerForm" onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="registerName" class="form-input" 
+                                   placeholder="Your full name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="registerEmail" class="form-input" 
+                                   placeholder="your.email@vifm.ae" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <div class="input-icon">
+                                <input type="password" id="registerPassword" class="form-input" 
+                                       placeholder="Choose a secure password" required>
+                                <i onclick="toggleRegisterPassword()" style="cursor: pointer;">👁️</i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Role</label>
+                            <select id="registerRole" class="form-input" required>
+                                <option value="">Select your role</option>
+                                <option value="consultant">Consultant</option>
+                                <option value="bd">Business Development Professional</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" id="registerBtn" class="btn btn-primary">
+                            Create Account
+                        </button>
+                    </form>
+                </div>
                 
                 <!-- Demo Users Info -->
                 <div class="demo-info">
@@ -618,24 +704,129 @@
             }
         }
         
-        // Toggle password visibility
+        // Toggle password visibility for login
         function togglePassword() {
             const passwordInput = document.getElementById('password');
             const type = passwordInput.type === 'password' ? 'text' : 'password';
             passwordInput.type = type;
         }
         
+        // Toggle password visibility for registration
+        function toggleRegisterPassword() {
+            const passwordInput = document.getElementById('registerPassword');
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+        }
+        
+        // Form toggling functions
+        function showLoginForm() {
+            document.getElementById('loginFormContainer').classList.remove('hidden');
+            document.getElementById('registerFormContainer').classList.add('hidden');
+            document.getElementById('loginTab').classList.add('active');
+            document.getElementById('registerTab').classList.remove('active');
+            clearMessages();
+        }
+        
+        function showRegisterForm() {
+            document.getElementById('loginFormContainer').classList.add('hidden');
+            document.getElementById('registerFormContainer').classList.remove('hidden');
+            document.getElementById('loginTab').classList.remove('active');
+            document.getElementById('registerTab').classList.add('active');
+            clearMessages();
+        }
+        
+        // Clear messages
+        function clearMessages() {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = '';
+            messageArea.classList.add('hidden');
+        }
+        
+        // Handle registration
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            if (!systemReady) {
+                showMessage('error', 'System is still loading. Please wait a moment...');
+                return;
+            }
+            
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const role = document.getElementById('registerRole').value;
+            const registerBtn = document.getElementById('registerBtn');
+            
+            // Validate input
+            if (!name || !email || !password || !role) {
+                showMessage('error', 'Please fill in all fields');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('error', 'Password must be at least 6 characters long');
+                return;
+            }
+            
+            // Disable button and show loading
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<span class="spinner"></span> Creating account...';
+            
+            try {
+                // Get Auth object
+                let auth = window.Auth || window.VIFMSupabase?.Auth;
+                
+                if (!auth) {
+                    throw new Error('Authentication system not available');
+                }
+                
+                // Register the user
+                const result = await auth.signUp(email, password, name, role);
+                
+                if (result.success) {
+                    if (result.requiresEmailConfirmation) {
+                        showMessage('info', result.message || 'Account created! Please check your email to confirm your account.');
+                        
+                        // Switch to login form but don't populate email yet
+                        setTimeout(() => {
+                            showLoginForm();
+                            document.getElementById('registerForm').reset();
+                        }, 3000);
+                    } else {
+                        showMessage('success', result.message || 'Account created successfully! You can now sign in.');
+                        
+                        // Switch to login form and populate email
+                        setTimeout(() => {
+                            showLoginForm();
+                            document.getElementById('email').value = email;
+                            document.getElementById('registerForm').reset();
+                        }, 2000);
+                    }
+                } else {
+                    throw new Error(result.error || 'Registration failed');
+                }
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage('error', error.message || 'Registration failed. Please try again.');
+            } finally {
+                // Re-enable button
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Create Account';
+            }
+        }
+        
         // Show message
         function showMessage(type, message) {
             const messageArea = document.getElementById('messageArea');
-            messageArea.className = `message ${type}`;
-            messageArea.textContent = message;
-            messageArea.classList.remove('hidden');
+            messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
             
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                messageArea.classList.add('hidden');
-            }, 5000);
+            // Auto-hide after 5 seconds unless it's an error
+            if (type !== 'error') {
+                setTimeout(() => {
+                    messageArea.innerHTML = '';
+                }, 5000);
+            }
         }
         
         // Initialize and check for existing session

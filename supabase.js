@@ -148,6 +148,84 @@ const Auth = {
         localStorage.removeItem('vifm_profile');
     },
     
+    // Sign up new user (Registration) - Secure version
+    async signUp(email, password, fullName, role) {
+        try {
+            const client = getSupabaseClient();
+            if (!client) throw new Error('Supabase client not available');
+            
+            // Validate and sanitize role (prevent privilege escalation)
+            const allowedRoles = ['consultant', 'bd'];
+            const sanitizedRole = allowedRoles.includes(role) ? role : 'consultant';
+            
+            // Create the auth user with email confirmation disabled
+            const { data: authData, error: authError } = await client.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        role: sanitizedRole
+                    },
+                    emailRedirectTo: window.location.origin + '/login.html'
+                }
+            });
+            
+            if (authError) {
+                console.error('Auth signup error:', authError);
+                throw new Error(authError.message || 'Failed to create authentication account');
+            }
+            
+            if (!authData.user) {
+                throw new Error('User creation failed - no user data returned');
+            }
+            
+            // Check if email confirmation is required
+            if (!authData.session) {
+                return { 
+                    success: true, 
+                    user: authData.user, 
+                    profile: null,
+                    requiresEmailConfirmation: true,
+                    message: 'Account created! Please check your email to confirm your account before signing in.'
+                };
+            }
+            
+            // If we have a session, create the profile immediately
+            const { data: profileData, error: profileError } = await client
+                .from('profiles')
+                .insert({
+                    id: authData.user.id,
+                    email: email,
+                    full_name: fullName,
+                    role: sanitizedRole
+                })
+                .select()
+                .single();
+                
+            if (profileError) {
+                console.error('Profile creation error:', profileError);
+                // If profile creation fails and we have an auth user, this is a serious problem
+                throw new Error('Account created but profile setup failed. Please contact support.');
+            }
+            
+            return { 
+                success: true, 
+                user: authData.user, 
+                profile: profileData,
+                session: authData.session,
+                message: 'Account created successfully! You can now sign in.'
+            };
+            
+        } catch (error) {
+            console.error('Registration error:', error);
+            return { 
+                success: false, 
+                error: error.message || 'Registration failed'
+            };
+        }
+    },
+    
     // Get current session (Production version)
     async getSession() {
         try {
