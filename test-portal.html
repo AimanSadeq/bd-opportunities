@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIFM Portal - System Test</title>
+    <title>VIFM Portal - Production System Test</title>
+    
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- VIFM Supabase Configuration -->
+    <script src="supabase.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -76,8 +81,9 @@
         </div>
         
         <div style="margin-top: 20px;">
-            <button onclick="runTests()">🔄 Run Tests Again</button>
-            <button onclick="clearData()">🗑️ Clear All Data</button>
+            <button onclick="runTests()">🔄 Run Production Tests</button>
+            <button onclick="clearTestData()">🗑️ Clear Test Data</button>
+            <button onclick="window.location.href='login.html'">🔐 Go to Login</button>
             <button onclick="window.location.href='index.html'">🏠 Go to Portal</button>
         </div>
         
@@ -88,86 +94,191 @@
     </div>
 
     <script>
-        // Test functions
+        // Production Test Functions
         const tests = {
-            checkFiles: function() {
+            checkFiles: async function() {
                 const requiredFiles = [
                     'index.html',
                     'login.html', 
                     'vifm-main-menu.html',
                     'phase1.html',
-                    'bd-module.html'
+                    'bd-module.html',
+                    'supabase.js'
                 ];
                 
-                const results = [];
-                requiredFiles.forEach(file => {
-                    // Try to check if file exists (this is a simple check)
-                    fetch(file, { method: 'HEAD' })
-                        .then(() => results.push({file, exists: true}))
-                        .catch(() => results.push({file, exists: false}));
-                });
-                
-                return {
-                    name: 'File Check',
-                    pass: true, // Will be updated based on actual check
-                    message: 'Checking required HTML files...'
-                };
-            },
-            
-            checkSupabase: function() {
-                const url = 'https://tdzwnqhuijdmqnzflvhz.supabase.co';
-                const key = localStorage.getItem('SUPABASE_ANON_KEY');
-                
-                if (!window.supabase) {
-                    return {
-                        name: 'Supabase Library',
-                        pass: false,
-                        message: 'Supabase client library not loaded'
-                    };
-                }
-                
-                return {
-                    name: 'Supabase Configuration',
-                    pass: true,
-                    message: 'Supabase client available'
-                };
-            },
-            
-            checkLocalStorage: function() {
                 try {
-                    localStorage.setItem('test', 'test');
-                    localStorage.removeItem('test');
+                    let allExist = true;
+                    for (const file of requiredFiles) {
+                        const response = await fetch(file, { method: 'HEAD' });
+                        if (!response.ok) allExist = false;
+                    }
+                    
                     return {
-                        name: 'Local Storage',
-                        pass: true,
-                        message: 'Local storage is working'
+                        name: 'File Integrity Check',
+                        pass: allExist,
+                        message: allExist ? 'All required files present' : 'Some files missing'
                     };
-                } catch(e) {
+                } catch (error) {
                     return {
-                        name: 'Local Storage',
+                        name: 'File Integrity Check',
                         pass: false,
-                        message: 'Local storage is blocked or unavailable'
+                        message: 'Error checking files: ' + error.message
                     };
                 }
             },
             
-            checkSession: function() {
-                const session = localStorage.getItem('session_token');
-                const user = localStorage.getItem('user_data');
-                
-                if (session && user) {
-                    const userData = JSON.parse(user);
+            checkAuthSystem: function() {
+                if (!window.VIFMSupabase) {
                     return {
-                        name: 'Session Status',
-                        pass: true,
-                        message: `Active session for: ${userData.full_name}`
+                        name: 'Authentication System',
+                        pass: false,
+                        message: 'VIFM authentication system not loaded'
                     };
                 }
                 
+                const hasAuth = window.VIFMSupabase.Auth;
+                const hasDatabase = window.VIFMSupabase.Database;
+                const hasRouteGuard = window.VIFMSupabase.RouteGuard;
+                
+                if (hasAuth && hasDatabase && hasRouteGuard) {
+                    return {
+                        name: 'Authentication System',
+                        pass: true,
+                        message: '✅ Production auth system loaded'
+                    };
+                } else {
+                    return {
+                        name: 'Authentication System',
+                        pass: false,
+                        message: 'Missing auth components'
+                    };
+                }
+            },
+            
+            checkSupabaseConnection: async function() {
+                try {
+                    if (!window.VIFMSupabase || !window.VIFMSupabase.Database) {
+                        throw new Error('Database system not available');
+                    }
+                    
+                    const result = await window.VIFMSupabase.Database.testConnection();
+                    
+                    return {
+                        name: 'Database Connection',
+                        pass: result.success,
+                        message: result.message || (result.success ? 'Connected to Supabase' : 'Connection failed')
+                    };
+                } catch (error) {
+                    return {
+                        name: 'Database Connection',
+                        pass: false,
+                        message: 'Error: ' + error.message
+                    };
+                }
+            },
+            
+            checkCRUDOperations: async function() {
+                try {
+                    if (!window.VIFMSupabase || !window.VIFMSupabase.Database) {
+                        throw new Error('Database system not available');
+                    }
+                    
+                    // Test data operations on profiles table
+                    const testData = {
+                        email: 'test_' + Date.now() + '@test.com',
+                        full_name: 'Test User',
+                        role: 'consultant'
+                    };
+                    
+                    // Test CREATE
+                    const created = await window.VIFMSupabase.Database.insert('profiles', testData);
+                    
+                    // Test READ
+                    const profiles = await window.VIFMSupabase.Database.select('profiles', {
+                        filter: { email: testData.email },
+                        limit: 1
+                    });
+                    
+                    // Test UPDATE
+                    const updated = await window.VIFMSupabase.Database.update('profiles', created.id, {
+                        full_name: 'Updated Test User'
+                    });
+                    
+                    // Test DELETE
+                    await window.VIFMSupabase.Database.delete('profiles', created.id);
+                    
+                    return {
+                        name: 'CRUD Operations',
+                        pass: true,
+                        message: '✅ Create, Read, Update, Delete all working'
+                    };
+                    
+                } catch (error) {
+                    return {
+                        name: 'CRUD Operations',
+                        pass: false,
+                        message: 'CRUD error: ' + error.message
+                    };
+                }
+            },
+            
+            checkSessionManagement: function() {
+                // Check new session system
+                const sessionData = sessionStorage.getItem('vifm_session');
+                
+                if (sessionData) {
+                    try {
+                        const session = JSON.parse(sessionData);
+                        const isValid = new Date(session.expires_at) > new Date();
+                        
+                        return {
+                            name: 'Session Management',
+                            pass: isValid,
+                            message: isValid ? 
+                                `✅ Valid session for: ${session.profile.full_name}` : 
+                                'Session expired'
+                        };
+                    } catch (error) {
+                        return {
+                            name: 'Session Management',
+                            pass: false,
+                            message: 'Session data corrupted'
+                        };
+                    }
+                } else {
+                    return {
+                        name: 'Session Management',
+                        pass: null,
+                        message: 'No active session (normal when not logged in)'
+                    };
+                }
+            },
+            
+            checkSecurityFeatures: function() {
+                const issues = [];
+                
+                // Check for old localStorage sessions
+                if (localStorage.getItem('session_token') || localStorage.getItem('user_data')) {
+                    issues.push('Old localStorage sessions found');
+                }
+                
+                // Check HTTPS in production
+                if (window.location.protocol === 'http:' && !window.location.hostname.includes('localhost')) {
+                    issues.push('Not using HTTPS in production');
+                }
+                
+                // Check for demo credentials visibility
+                const demoVisible = document.querySelector('[data-demo-credentials]') !== null;
+                if (demoVisible) {
+                    issues.push('Demo credentials visible');
+                }
+                
                 return {
-                    name: 'Session Status',
-                    pass: null,
-                    message: 'No active session (this is normal)'
+                    name: 'Security Features',
+                    pass: issues.length === 0,
+                    message: issues.length === 0 ? 
+                        '✅ Security checks passed' : 
+                        '⚠️ Issues: ' + issues.join(', ')
                 };
             },
             
@@ -201,17 +312,38 @@
             }
         };
         
-        function runTests() {
+        async function runTests() {
             const resultsDiv = document.getElementById('testResults');
-            resultsDiv.innerHTML = '';
+            resultsDiv.innerHTML = '<p>🧪 Running production system tests...</p>';
             
             let passCount = 0;
             let failCount = 0;
             let warningCount = 0;
+            const results = [];
             
-            // Run each test
-            Object.values(tests).forEach(test => {
-                const result = test();
+            // Run each test sequentially
+            for (const [testName, testFunc] of Object.entries(tests)) {
+                try {
+                    const result = await testFunc();
+                    results.push(result);
+                    
+                    if (result.pass === true) passCount++;
+                    else if (result.pass === false) failCount++;
+                    else warningCount++;
+                    
+                } catch (error) {
+                    results.push({
+                        name: testName,
+                        pass: false,
+                        message: 'Test error: ' + error.message
+                    });
+                    failCount++;
+                }
+            }
+            
+            // Display results
+            resultsDiv.innerHTML = '';
+            results.forEach(result => {
                 const div = document.createElement('div');
                 div.className = 'test-item';
                 

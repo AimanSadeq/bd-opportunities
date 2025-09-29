@@ -7,6 +7,8 @@
     
     <!-- Add Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- VIFM Supabase Configuration -->
+    <script src="supabase.js"></script>
     
     <!-- Google Fonts - Open Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -450,31 +452,56 @@
         // AUTHENTICATION & SESSION MANAGEMENT
         // ==================================================
         
-        const SUPABASE_URL = 'https://tdzwnqhuijdmqnzflvhz.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkenducWh1aWpkbXFuemZsdmh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MDE1NDcsImV4cCI6MjA3NDM3NzU0N30.3JDWHIDhc3jgZS9Ul1QhnMkN0c3ey-dV96DHJxCO_H8';
-        
-        let supabase = null;
+        // Use centralized Supabase configuration
         let currentUser = null;
         
-        // Check authentication
-        function checkAuth() {
-            const sessionToken = localStorage.getItem('session_token');
-            const userData = localStorage.getItem('user_data');
-            
-            if (!sessionToken || !userData) {
+        // Check authentication with production security
+        async function checkAuth() {
+            try {
+                // Check for valid session
+                const sessionData = sessionStorage.getItem('vifm_session');
+                
+                if (!sessionData) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                const session = JSON.parse(sessionData);
+                
+                // Check if session is still valid
+                if (new Date(session.expires_at) <= new Date()) {
+                    sessionStorage.removeItem('vifm_session');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                // Set current user from session
+                currentUser = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    full_name: session.profile.full_name,
+                    role: session.profile.role
+                };
+                
+                // Clean up any old localStorage data
+                if (localStorage.getItem('session_token') || localStorage.getItem('user_data')) {
+                    localStorage.removeItem('session_token');
+                    localStorage.removeItem('user_data');
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Authentication check failed:', error);
                 window.location.href = 'login.html';
                 return false;
             }
-            
-            currentUser = JSON.parse(userData);
-            return true;
         }
         
-        // Initialize Supabase
+        // Initialize Supabase using centralized configuration
         function initializeSupabase() {
             try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                return true;
+                return window.VIFMSupabase && window.VIFMSupabase.getSupabaseClient();
             } catch (error) {
                 console.error('Error initializing Supabase:', error);
                 return false;
@@ -504,7 +531,7 @@
         function getRoleDisplay(role) {
             const roleNames = {
                 'consultant': 'Consultant',
-                'bd_prof': 'Business Development Professional',
+                'bd': 'Business Development Professional',
                 'admin': 'Administrator',
                 'marketing': 'Marketing Team'
             };
@@ -515,7 +542,7 @@
         function getRoleMessage(role) {
             const messages = {
                 'consultant': 'Track your training opportunities and client interactions',
-                'bd_prof': 'Manage your sales pipeline and BD opportunities',
+                'bd': 'Manage your sales pipeline and BD opportunities',
                 'admin': 'Full system access and administration tools',
                 'marketing': 'View marketing data and campaign opportunities'
             };
@@ -554,7 +581,7 @@
                         <div class="stat-change">Successfully closed</div>
                     </div>
                 `;
-            } else if (currentUser.role === 'bd_prof') {
+            } else if (currentUser.role === 'bd') {
                 statsGrid.innerHTML = `
                     <div class="stat-card">
                         <div class="stat-header">
@@ -636,7 +663,7 @@
         description: 'Manage your training leads, client information, and follow-up actions',
         icon: '🎯',
         url: 'phase1.html',               // ← Fixed
-        allowedRoles: ['consultant', 'bd_prof', 'admin']
+        allowedRoles: ['consultant', 'bd', 'admin']
     },
     {
         id: 'bd-module',
@@ -645,7 +672,7 @@
         description: 'Manage BD opportunities, pipeline stages, and revenue forecasting',
         icon: '💼',
         url: 'bd-module.html',            // ← Fixed
-        allowedRoles: ['bd_prof', 'admin']
+        allowedRoles: ['bd', 'admin']
     },
     // ... keep other modules as they are
 ];
@@ -681,24 +708,31 @@
             window.location.href = url;
         }
         
-        // Logout
+        // Logout with production security
         async function logout() {
             if (confirm('Are you sure you want to sign out?')) {
-                // Clear session from database
-                const sessionToken = localStorage.getItem('session_token');
-                if (supabase && sessionToken) {
-                    await supabase
-                        .from('user_sessions')
-                        .delete()
-                        .eq('token', sessionToken);
+                try {
+                    // Clear session using centralized auth system
+                    if (window.VIFMSupabase && window.VIFMSupabase.Auth) {
+                        await window.VIFMSupabase.Auth.signOut();
+                    }
+                    
+                    // Clear session storage
+                    sessionStorage.removeItem('vifm_session');
+                    
+                    // Clear any remaining localStorage data
+                    localStorage.clear();
+                    
+                    // Redirect to login
+                    window.location.href = 'login.html';
+                    
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    // Still redirect even if there's an error
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    window.location.href = 'login.html';
                 }
-                
-                // Clear local storage
-                localStorage.removeItem('session_token');
-                localStorage.removeItem('user_data');
-                
-                // Redirect to login
-                window.location.href = 'login.html';
             }
         }
         
@@ -706,15 +740,15 @@
         // INITIALIZATION
         // ==================================================
         
-        window.onload = function() {
+        window.onload = async function() {
             // Check authentication
-            if (!checkAuth()) {
+            if (!(await checkAuth())) {
                 return;
             }
             
             // Initialize Supabase
             if (!initializeSupabase()) {
-                alert('Failed to connect to database. Some features may not work.');
+                console.warn('Failed to connect to database. Some features may not work.');
             }
             
             // Load user interface

@@ -7,6 +7,8 @@
     
     <!-- Add Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- VIFM Supabase Configuration -->
+    <script src="supabase.js"></script>
     
     <!-- Google Fonts - Open Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -1496,29 +1498,55 @@
         // ==================================================
 
         window.onload = async function() {
-            debugLog('🚀 Initializing Enhanced Consultant Opportunities System...');
+            debugLog('🚀 Initializing Consultant Module with Production Security...');
             
             try {
-                // Set defaults
-                setTodaysDate();
-                
-                // Auto-detect and set consultant from session
-                const autoDetected = setConsultantFromSession();
-                
-                // If not auto-detected, try to load from localStorage
-                if (!autoDetected) {
-                    loadConsultantName();
+                // STEP 1: Verify authentication and role access
+                if (!window.VIFMSupabase) {
+                    throw new Error('Authentication system not available');
                 }
                 
-                // Initialize Supabase
-                if (initializeSupabase()) {
-                    debugLog('✅ Supabase initialized, testing connection...');
-                    await testDatabaseConnection();
-                    await loadOpportunities();
-                } else {
-                    debugLog('❌ Supabase initialization failed, working offline');
-                    updateConnectionStatus(false, 'Offline mode');
+                // Check if user is authenticated and has consultant or admin role
+                const hasAccess = await window.VIFMSupabase.RouteGuard.requireRole('consultant');
+                if (!hasAccess) {
+                    return; // RouteGuard.requireRole handles redirection
+                }
+                
+                // Get current user info
+                const { user, profile } = await window.VIFMSupabase.Auth.getCurrentUser();
+                if (!user || !profile) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                debugLog('✅ Authentication verified for consultant:', profile.full_name);
+                
+                // STEP 2: Set defaults and auto-populate consultant info
+                setTodaysDate();
+                
+                // Auto-set consultant name from authenticated user
+                if (profile.role === 'consultant') {
+                    const consultantInput = document.getElementById('consultantName');
+                    if (consultantInput && profile.full_name) {
+                        consultantInput.value = profile.full_name;
+                        localStorage.setItem('current_consultant', profile.full_name);
+                    }
+                }
+                
+                // STEP 3: Initialize database connection  
+                const connectionTest = await window.VIFMSupabase.Database.testConnection();
+                if (connectionTest.success) {
+                    debugLog('✅ Database connection established');
+                    updateConnectionStatus(true, 'Connected to Supabase');
                     
+                    // Load live data using centralized system
+                    await loadOpportunities();
+                    
+                } else {
+                    debugLog('⚠️ Database connection failed, using offline mode:', connectionTest.message);
+                    updateConnectionStatus(false, 'Offline mode - ' + connectionTest.message);
+                    
+                    // Load from backup
                     const backup = localStorage.getItem('training_opportunities_backup');
                     if (backup) {
                         opportunities = JSON.parse(backup);
@@ -1527,12 +1555,23 @@
                     }
                 }
                 
-                debugLog('✅ Initialization complete');
+                // STEP 4: Start periodic connection checks
+                setInterval(async () => {
+                    const test = await window.VIFMSupabase.Database.testConnection();
+                    updateConnectionStatus(test.success, test.message);
+                }, 30000);
+                
+                debugLog('✅ Consultant Module initialization complete for:', profile.full_name);
                 
             } catch (error) {
-                debugLog('❌ Initialization error', error);
-                updateConnectionStatus(false, 'Error');
-                showMessage('error', 'Initialization error: ' + error.message);
+                debugLog('❌ Initialization error:', error);
+                updateConnectionStatus(false, 'Error: ' + error.message);
+                showMessage('error', 'System error: ' + error.message);
+                
+                // If it's an auth error, redirect to login
+                if (error.message.includes('Authentication') || error.message.includes('session')) {
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                }
             }
         };
     </script>
