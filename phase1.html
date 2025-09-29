@@ -1594,11 +1594,20 @@
                 
                 // CRITICAL: Ensure page is visible after successful initialization
                 document.body.style.visibility = 'visible';
-                // Remove any loading overlays
-                const loadingOverlay = document.querySelector('.auth-loading');
-                if (loadingOverlay) {
-                    loadingOverlay.remove();
+                document.body.style.display = '';
+                
+                // Remove all overlays and loading elements
+                const overlays = document.querySelectorAll('.auth-loading, #auth-overlay');
+                overlays.forEach(overlay => overlay.remove());
+                
+                // Force content container to be visible
+                const contentContainer = document.querySelector('.consultant-dashboard');
+                if (contentContainer) {
+                    contentContainer.style.display = 'block';
+                    contentContainer.style.visibility = 'visible';
                 }
+                
+                debugLog('🎯 FORCED page and content visibility ON');
                 
             } catch (error) {
                 debugLog('❌ Initialization error:', error);
