@@ -757,10 +757,11 @@
                         await supabaseClient
                             .from("profiles")
                             .select("*")
-                            .eq("user_id", data.user.id)
+                            .eq("email", email)
                             .single();
 
                     if (profileError || !profile) {
+                        console.error("Profile fetch error:", profileError);
                         throw new Error("User profile not found");
                     }
 
