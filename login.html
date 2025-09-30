@@ -517,41 +517,6 @@
                         </button>
                     </form>
                 </div>
-                
-                <!-- Admin Quick Login -->
-                <div class="demo-info">
-                    <div class="demo-title">🔧 Admin Quick Login (Temporary)</div>
-                    <div class="demo-users">
-                        <div class="demo-user">
-                            <strong>Admin Access:</strong>
-                            <button onclick="quickAdminLogin()" class="btn btn-secondary" style="margin-top: 8px; padding: 8px 16px; font-size: 12px;">
-                                Login as Admin
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Demo Users Info -->
-                <div class="demo-info">
-                    <div class="demo-title">🔐 Demo Credentials (For Testing)</div>
-                    <div class="demo-users">
-                        <div class="demo-user">
-                            <strong>aiman@vifm.ae</strong>
-                            <span class="role-badge role-consultant">Consultant</span>
-                        </div>
-                        <div class="demo-user">
-                            <strong>amal.kayed@vifm.ae</strong>
-                            <span class="role-badge role-bd">BD Prof</span>
-                        </div>
-                        <div class="demo-user">
-                            <strong>admin@vifm.ae</strong>
-                            <span class="role-badge role-admin">Admin</span>
-                        </div>
-                    </div>
-                    <div style="text-align: center; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-light);">
-                        Password for all demo users: <strong>password123</strong>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -884,113 +849,6 @@
             }
         }
         
-        // Quick admin login bypass (temporary solution)
-        async function quickAdminLogin() {
-            try {
-                if (!supabaseClient) {
-                    showMessage('error', 'Authentication system not ready');
-                    return;
-                }
-                
-                console.log('Attempting quick admin login...');
-                showMessage('info', 'Logging in as admin...');
-                
-                // Get the admin profile from database
-                const { data: profiles, error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('email', 'asadeq@viftraining.com')
-                    .single();
-                
-                if (profileError || !profiles) {
-                    console.error('Admin profile not found:', profileError);
-                    showMessage('error', 'Admin profile not found in database');
-                    return;
-                }
-                
-                console.log('✅ Admin profile found:', profiles.full_name);
-                
-                // Create a session-like object for the admin
-                const adminSession = {
-                    user: {
-                        id: profiles.id,
-                        email: profiles.email,
-                        role: profiles.role
-                    },
-                    profile: profiles
-                };
-                
-                // Store admin session
-                sessionStorage.setItem('admin_session', JSON.stringify(adminSession));
-                sessionStorage.setItem('current_user', JSON.stringify(profiles));
-                
-                console.log('✅ Admin session created');
-                showMessage('success', 'Admin login successful! Redirecting...');
-                
-                // Redirect to admin dashboard
-                setTimeout(() => {
-                    window.location.href = '/vifm-main-menu.html';
-                }, 1500);
-                
-            } catch (error) {
-                console.error('Quick admin login error:', error);
-                showMessage('error', 'Admin login failed. Please try again.');
-            }
-        }
-        
-        // Auto-fix admin password (temporary solution)
-        async function autoFixAdminPassword() {
-            try {
-                if (!supabaseClient) {
-                    return;
-                }
-                
-                console.log('Checking admin password for asadeq@viftraining.com...');
-                
-                // Try to sign in with the expected credentials first
-                const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({
-                    email: 'asadeq@viftraining.com',
-                    password: 'admin123'
-                });
-                
-                if (signInData?.user) {
-                    console.log('✅ Admin password already correct');
-                    await supabaseClient.auth.signOut(); // Sign out immediately
-                    return;
-                }
-                
-                // If sign-in failed, try to reset the password using a different approach
-                console.log('Attempting to fix admin password...');
-                
-                // Request password reset for admin
-                const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(
-                    'asadeq@viftraining.com',
-                    { redirectTo: window.location.origin + '/reset-password.html' }
-                );
-                
-                if (!resetError) {
-                    console.log('✅ Password reset email sent for admin user');
-                    
-                    // Show a helpful message to the user
-                    setTimeout(() => {
-                        const messageArea = document.getElementById('messageArea');
-                        if (messageArea && !messageArea.innerHTML.trim()) {
-                            messageArea.innerHTML = `
-                                <div class="message success">
-                                    🔧 Admin password reset email sent to asadeq@viftraining.com<br>
-                                    Check your email and follow the link to set a new password.
-                                </div>
-                            `;
-                        }
-                    }, 1000);
-                }
-                
-            } catch (error) {
-                console.log('Admin password check completed');
-                // Silent error - don't show to user
-            }
-        }
-        
         // Initialize and check for existing session
         window.onload = async function() {
             console.log('VIFM Production System initializing...');
@@ -1005,9 +863,6 @@
                 
                 // Initialize Supabase client
                 initializeSupabase();
-                
-                // Auto-fix admin password on page load (temporary)
-                await autoFixAdminPassword();
                 
                 console.log('✅ VIFM Production System ready');
                 
