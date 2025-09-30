@@ -48,8 +48,8 @@ function initializeSupabase() {
             auth: {
                 autoRefreshToken: true,
                 persistSession: true,
-                detectSessionInUrl: false, // Disable to prevent postMessage recursion
-                storage: window.sessionStorage // Use sessionStorage for auth persistence
+                detectSessionInUrl: true,
+                storage: window.localStorage // Use localStorage for auth persistence
             },
             db: {
                 schema: 'public'

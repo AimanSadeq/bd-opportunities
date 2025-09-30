@@ -755,8 +755,6 @@
                     }
                     
                     console.log("✅ Auth successful, user ID:", data.user.id);
-                    console.log("Auth email:", data.user.email);
-                    console.log("Querying profile with email:", email);
 
                     // Get user profile from database
                     const { data: profile, error: profileError } =
@@ -766,13 +764,8 @@
                             .eq("email", email)
                             .single();
 
-                    console.log("Profile query result:", profile);
-                    console.log("Profile error:", profileError);
-
                     if (profileError || !profile) {
                         console.error("Profile fetch error:", profileError);
-                        console.error("Queried email:", email);
-                        console.error("Auth user email:", data.user.email);
                         throw new Error("User profile not found");
                     }
 
