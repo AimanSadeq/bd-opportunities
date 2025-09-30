@@ -1633,38 +1633,6 @@
             }, 1000);
         }
 
-        function syncWithSupabase() {
-            showMessage('info', 'Sync feature available in full version');
-        }
-
-        function exportAllToCSV() {
-            showMessage('info', 'Export feature available in full version');
-        }
-
-        function submitOpportunity() {
-            showMessage('info', 'Form submission available in full version');
-        }
-
-        function saveDraft() {
-            showMessage('info', 'Draft saving available in full version');
-        }
-
-        function resetForm() {
-            document.getElementById('opportunityForm').reset();
-            showMessage('success', 'Form cleared');
-        }
-
-        function addTestOpportunity() {
-            showMessage('info', 'Test data feature available in full version');
-        }
-
-        function saveConsultantName() {
-            const consultant = document.getElementById('consultantSelector').value;
-            if (consultant) {
-                localStorage.setItem('current_consultant', consultant);
-                showMessage('success', `Consultant set to: ${consultant}`);
-            }
-        }
 
     </script>
 </body>
