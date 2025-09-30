@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - VIFM Portal</title>
+    
+    <!-- Force cache refresh -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Environment Configuration -->
+    <script src="env.js"></script>
+    
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <script src="route-guards.js"></script>
+    
+    <!-- Pre-render Security -->
+    <style>
+        body { visibility: hidden !important; }
+        .auth-loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #010131 0%, #121140 100%);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-family: 'Open Sans', Arial, sans-serif; z-index: 99999; visibility: visible !important;
+        }
+    </style>
+    
+    <script>
+        document.write('<div class="auth-loading"><div style="text-align: center;"><div style="font-size: 2rem; margin-bottom: 1rem;">🔒</div><h2 style="margin-bottom: 0.5rem;">Verifying Admin Access...</h2><p style="opacity: 0.8;">Loading User Management...</p></div></div>');
+        
+        (async function() {
+            await window.VIFMRouteGuards.executePreRenderSecurity();
+        })();
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --background: #010131;
+            --surface: #1a1a3e;
+            --border: #2a2a5e;
+            --text: #ffffff;
+            --text-light: #a0a0c0;
+            --success: #10B981;
+            --error: #EF4444;
+            --warning: #F59E0B;
+        }
+        
+        body {
+            font-family: 'Open Sans', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #121140 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+        
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .users-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .user-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .user-email {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+        
+        .user-role {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .role-admin {
+            background: rgba(239, 68, 68, 0.2);
+            color: #FCA5A5;
+        }
+        
+        .role-bd {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93C5FD;
+        }
+        
+        .role-consultant {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6EE7B7;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .message.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        .message.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+        
+        .back-btn {
+            color: var(--text-light);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .back-btn:hover {
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="vifm-main-menu.html" class="back-btn">← Back to Dashboard</a>
+        
+        <div class="header">
+            <h1>👥 User Management</h1>
+        </div>
+        
+        <div id="messageArea"></div>
+        
+        <div class="card">
+            <h2 style="margin-bottom: 1rem;">Employee Accounts</h2>
+            <div id="usersGrid" class="users-grid">
+                <p style="color: var(--text-light);">Loading users...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let supabase = null;
+        let currentAdmin = null;
+        
+        // Initialize
+        async function init() {
+            try {
+                // Load admin session
+                currentAdmin = normalizeSession();
+                if (!currentAdmin || currentAdmin.role !== 'admin') {
+                    showMessage('error', 'Access denied. Admin privileges required.');
+                    setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
+                    return;
+                }
+                
+                // Initialize Supabase
+                supabase = window.VIFMSupabase.client;
+                
+                // Load users
+                await loadUsers();
+                
+                // Show page
+                const loadingOverlay = document.querySelector('.auth-loading');
+                if (loadingOverlay) loadingOverlay.remove();
+                document.body.style.visibility = 'visible';
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showMessage('error', 'Failed to initialize user management');
+            }
+        }
+        
+        // Normalize session (same as main menu)
+        function normalizeSession() {
+            try {
+                const vifmSession = sessionStorage.getItem('vifm_session');
+                if (vifmSession) {
+                    const session = JSON.parse(vifmSession);
+                    const user = session.profile || session.user;
+                    if (user && user.full_name && user.role) return user;
+                }
+                
+                const currentUserData = sessionStorage.getItem('current_user');
+                if (currentUserData) {
+                    const user = JSON.parse(currentUserData);
+                    if (user && user.full_name && user.role) return user;
+                }
+                
+                const adminSession = sessionStorage.getItem('admin_session');
+                if (adminSession) {
+                    const session = JSON.parse(adminSession);
+                    const user = session.profile;
+                    if (user && user.full_name && user.role) return user;
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error normalizing session:', error);
+                return null;
+            }
+        }
+        
+        // Load users from database
+        async function loadUsers() {
+            try {
+                const { data: users, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                const usersGrid = document.getElementById('usersGrid');
+                if (!users || users.length === 0) {
+                    usersGrid.innerHTML = '<p style="color: var(--text-light);">No users found</p>';
+                    return;
+                }
+                
+                usersGrid.innerHTML = users.map(user => `
+                    <div class="user-card">
+                        <div class="user-info">
+                            <div class="user-name">${user.full_name}</div>
+                            <div class="user-email">${user.email}</div>
+                            <span class="user-role role-${user.role}">${getRoleDisplay(user.role)}</span>
+                        </div>
+                        <div class="user-actions">
+                            ${user.email !== currentAdmin.email ? `
+                                <button class="btn btn-sm btn-secondary" onclick="resetUserPassword('${user.email}', '${user.full_name}')">
+                                    Reset Password
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showMessage('error', 'Failed to load users: ' + error.message);
+            }
+        }
+        
+        // Reset user password
+        async function resetUserPassword(email, name) {
+            if (!confirm(`Send password reset email to ${name} (${email})?`)) return;
+            
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password.html'
+                });
+                
+                if (error) throw error;
+                
+                showMessage('success', `Password reset email sent to ${email}`);
+                
+            } catch (error) {
+                console.error('Error resetting password:', error);
+                showMessage('error', 'Failed to send reset email: ' + error.message);
+            }
+        }
+        
+        // Helper functions
+        function getRoleDisplay(role) {
+            const roles = {
+                'admin': 'Administrator',
+                'bd': 'BD Professional',
+                'consultant': 'Consultant'
+            };
+            return roles[role] || role;
+        }
+        
+        function showMessage(type, message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    messageArea.innerHTML = '';
+                }, 5000);
+            }
+        }
+        
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>

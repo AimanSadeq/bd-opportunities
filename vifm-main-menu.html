@@ -801,7 +801,7 @@
         subtitle: 'Track training opportunities',
         description: 'Manage your training leads, client information, and follow-up actions',
         icon: '🎯',
-        url: 'phase1.html',               // ← Fixed
+        url: 'phase1.html',
         allowedRoles: ['consultant', 'bd', 'admin']
     },
     {
@@ -810,10 +810,18 @@
         subtitle: 'Sales pipeline management',
         description: 'Manage BD opportunities, pipeline stages, and revenue forecasting',
         icon: '💼',
-        url: 'bd-module.html',            // ← Fixed
+        url: 'bd-module.html',
         allowedRoles: ['bd', 'admin']
     },
-    // ... keep other modules as they are
+    {
+        id: 'user-management',
+        title: 'User Management',
+        subtitle: 'Manage employee accounts',
+        description: 'Create user accounts, reset passwords, and manage access permissions',
+        icon: '👥',
+        url: 'admin-users.html',
+        allowedRoles: ['admin']
+    }
 ];
             
             modules.forEach(module => {
