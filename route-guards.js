@@ -230,9 +230,9 @@ window.VIFMRouteGuards.executePreRenderSecurity = async function(requiredRole = 
 
 // Resume page rendering after successful authentication
 window.VIFMRouteGuards.resumePageRendering = function() {
-    // Show page content - CRITICAL: Override !important with setProperty
-    document.body.style.setProperty('display', '', 'important');
-    document.body.style.setProperty('visibility', 'visible', 'important');
+    // Show page content - Add authenticated class to trigger visibility
+    document.body.classList.add('authenticated');
+    document.body.style.display = '';
     
     // Remove loading overlay
     const overlay = document.querySelector('.auth-loading, #auth-overlay');
