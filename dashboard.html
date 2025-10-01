@@ -597,6 +597,10 @@
             const navGrid = document.getElementById('navGrid');
             let navHTML = '';
             
+            // BD-only restricted users (email-based access control)
+            const bdOnlyUsers = ['akayed@viftraining.com', 'wael@viftraining.com'];
+            const isBDOnlyUser = bdOnlyUsers.includes(currentUser.email);
+            
             // Common modules with role-based access
             const modules = [
     {
@@ -620,25 +624,33 @@
 ];
             
             modules.forEach(module => {
-                const hasAccess = module.allowedRoles.includes(currentUser.role);
-                navHTML += `
-                    <div class="nav-card ${!hasAccess ? 'disabled' : ''}">
-                        <div class="nav-card-content">
-                            <div class="nav-card-header">
-                                <div class="nav-card-icon">${module.icon}</div>
-                                <div>
-                                    <div class="nav-card-title">${module.title}</div>
-                                    <div class="nav-card-subtitle">${module.subtitle}</div>
+                // Check role-based access
+                let hasAccess = module.allowedRoles.includes(currentUser.role);
+                
+                // Override access for BD-only users: only allow BD module
+                if (isBDOnlyUser) {
+                    hasAccess = module.id === 'bd-module';
+                }
+                
+                // Only show modules that user has access to
+                if (hasAccess) {
+                    navHTML += `
+                        <div class="nav-card">
+                            <div class="nav-card-content">
+                                <div class="nav-card-header">
+                                    <div class="nav-card-icon">${module.icon}</div>
+                                    <div>
+                                        <div class="nav-card-title">${module.title}</div>
+                                        <div class="nav-card-subtitle">${module.subtitle}</div>
+                                    </div>
+                                    <span class="access-badge badge-allowed">Access</span>
                                 </div>
-                                <span class="access-badge ${hasAccess ? 'badge-allowed' : 'badge-restricted'}">
-                                    ${hasAccess ? 'Access' : 'No Access'}
-                                </span>
+                                <div class="nav-card-description">${module.description}</div>
+                                <a href="${module.url}" style="text-decoration: none;"><button class="nav-card-action">Open Module →</button></a>
                             </div>
-                            <div class="nav-card-description">${module.description}</div>
-                            ${hasAccess ? `<a href="${module.url}" style="text-decoration: none;"><button class="nav-card-action">Open Module →</button></a>` : ''}
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             });
             
             navGrid.innerHTML = navHTML;
