@@ -276,9 +276,14 @@ app.post('/api/notify-activity', async (req, res) => {
     };
 
     // Send email in background (non-blocking)
-    sendActivityNotification(sanitizedData).catch(err => {
-      console.error('Background email send failed:', err);
-    });
+    sendActivityNotification(sanitizedData)
+      .then(() => {
+        console.log('✅ Email successfully queued and sent');
+      })
+      .catch(err => {
+        console.error('❌ Background email send failed:', err);
+        console.error('❌ Error details:', JSON.stringify(err, null, 2));
+      });
     
     // Respond immediately
     res.json({ success: true, message: 'Notification queued' });
