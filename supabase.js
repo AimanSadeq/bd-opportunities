@@ -175,7 +175,7 @@ const Auth = {
                 console.error('Auth signup error:', authError);
                 
                 // Handle common Supabase errors with user-friendly messages
-                if (authError.message.includes('already registered')) {
+                if (authError.code === 'user_already_exists' || authError.message.includes('already registered')) {
                     throw new Error('An account with this email already exists. Please sign in instead.');
                 } else if (authError.message.includes('invalid email')) {
                     throw new Error('Please provide a valid email address.');
