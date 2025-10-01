@@ -401,11 +401,8 @@ const Database = {
         const session = await Auth.getSession();
         if (!session?.user) throw new Error('User not authenticated');
         
-        // Add created_by field if not present - use user.id for RLS compatibility
-        if (!data.created_by && table !== 'profiles') {
-            const { user, profile } = await Auth.getCurrentUser();
-            data.created_by = user.id; // Always use user.id for Supabase auth.uid() RLS policies
-        }
+        // Do not set created_by - database triggers handle this automatically
+        // This ensures consistency and prevents schema cache issues
         
         const { data: result, error } = await client
             .from(table)

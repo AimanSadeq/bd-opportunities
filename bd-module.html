@@ -1011,6 +1011,24 @@
                     throw new Error('Database system not available');
                 }
 
+                // Check for exact duplicates (only when creating new, not editing)
+                if (!editingId) {
+                    const isDuplicate = bdOpportunities.some(existing => {
+                        return existing.course_title === formData.course_title &&
+                               existing.client === formData.client &&
+                               existing.consultant_name === formData.consultant_name &&
+                               existing.primary_contact === formData.primary_contact &&
+                               existing.contact_email === formData.contact_email &&
+                               existing.pipeline_stage === formData.pipeline_stage &&
+                               existing.estimated_budget === formData.estimated_budget;
+                    });
+                    
+                    if (isDuplicate) {
+                        showMessage('error', 'This BD opportunity already exists with the same information. Please modify the details or use a different source.');
+                        return;
+                    }
+                }
+
                 let result;
                 if (editingId) {
                     // Update existing opportunity
