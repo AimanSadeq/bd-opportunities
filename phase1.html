@@ -981,27 +981,19 @@
             debugLog('🔄 Saving opportunity to Supabase...', { isUpdate, opportunityId: opportunity.id });
             
             try {
-                if (!window.getSupabaseClient) {
+                if (!window.VIFMSupabase) {
                     throw new Error('Supabase not initialized');
                 }
                 
-                const client = window.getSupabaseClient();
+                const { user } = await window.VIFMSupabase.Auth.getCurrentUser();
                 let result;
                 
                 if (isUpdate) {
                     debugLog('🔄 Updating existing opportunity...');
-                    const { data, error } = await client
-                        .from('opportunities')
-                        .update({
-                            ...opportunity,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', opportunity.id)
-                        .select()
-                        .single();
-                    
-                    if (error) throw error;
-                    result = data;
+                    result = await window.VIFMSupabase.Database.update('opportunities', opportunity.id, {
+                        ...opportunity,
+                        updated_at: new Date().toISOString()
+                    });
                     debugLog('✅ Opportunity updated successfully', result);
                     
                 } else {
@@ -1009,14 +1001,10 @@
                     // Remove id for insert (let Supabase generate it)
                     const { id, ...opportunityWithoutId } = opportunity;
                     
-                    const { data, error } = await client
-                        .from('opportunities')
-                        .insert(opportunityWithoutId)
-                        .select()
-                        .single();
+                    // Add created_by field
+                    opportunityWithoutId.created_by = user.id;
                     
-                    if (error) throw error;
-                    result = data;
+                    result = await window.VIFMSupabase.Database.insert('opportunities', opportunityWithoutId);
                     debugLog('✅ Opportunity created successfully', result);
                 }
                 
@@ -1032,21 +1020,13 @@
             debugLog('🔄 Loading opportunities from Supabase...');
             
             try {
-                if (!window.getSupabaseClient) {
+                if (!window.VIFMSupabase) {
                     throw new Error('Supabase not initialized');
                 }
                 
-                const client = window.getSupabaseClient();
-                
-                const { data, error } = await client
-                    .from('opportunities')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) {
-                    debugLog('❌ Supabase query error', error);
-                    throw error;
-                }
+                const data = await window.VIFMSupabase.Database.select('opportunities', {
+                    orderBy: { column: 'created_at', ascending: false }
+                });
                 
                 opportunities = data || [];
                 debugLog('✅ Successfully loaded opportunities', { count: opportunities.length });
@@ -1147,7 +1127,7 @@
                 debugLog('📋 Opportunity object created', opportunity);
                 
                 // Try to save to Supabase first
-                if (isOnline && window.getSupabaseClient) {
+                if (isOnline && window.VIFMSupabase) {
                     debugLog('🌐 Attempting to save to Supabase...');
                     
                     const savedOpp = await saveOpportunityToSupabase(opportunity, !!editingId);
@@ -1464,9 +1444,8 @@
             if (!confirm('Are you sure you want to delete this opportunity?')) return;
             
             try {
-                if (isOnline && window.getSupabaseClient && !id.startsWith('local_')) {
-                    const client = window.getSupabaseClient();
-                    await client.from('opportunities').delete().eq('id', id);
+                if (isOnline && window.VIFMSupabase && !id.startsWith('local_')) {
+                    await window.VIFMSupabase.Database.delete('opportunities', id);
                 }
                 
                 opportunities = opportunities.filter(opp => opp.id !== id);
