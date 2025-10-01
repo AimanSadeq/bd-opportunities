@@ -112,6 +112,32 @@
             border-bottom: 2px solid #2a2a5e;
             font-weight: 600;
             color: #a0a0c0;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        .users-table th:hover {
+            color: white;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .users-table th.sortable::after {
+            content: '⇅';
+            margin-left: 0.5rem;
+            opacity: 0.3;
+        }
+        
+        .users-table th.sort-asc::after {
+            content: '↑';
+            opacity: 1;
+            color: #4F46E5;
+        }
+        
+        .users-table th.sort-desc::after {
+            content: '↓';
+            opacity: 1;
+            color: #4F46E5;
         }
         
         .users-table td {
@@ -321,6 +347,8 @@
         let currentAdmin = null;
         let users = [];
         let editingUserId = null;
+        let sortColumn = 'created_at';
+        let sortDirection = 'desc';
         
         // Initialize
         async function init() {
@@ -392,8 +420,7 @@
                 console.log('USER MGT: Loading users...');
                 const { data, error } = await supabase
                     .from('profiles')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                    .select('*');
                 
                 console.log('USER MGT: Query result - Data count:', data?.length, 'Error:', error);
                 
@@ -401,12 +428,57 @@
                 
                 users = data || [];
                 console.log('USER MGT: Users array set, total:', users.length);
+                sortUsers();
                 renderUsers();
                 
             } catch (error) {
                 console.error('USER MGT: Load users error:', error);
                 showMessage('error', 'Failed to load users');
             }
+        }
+        
+        // Sort users
+        function sortUsers() {
+            users.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortColumn) {
+                    case 'full_name':
+                        aVal = a.full_name.toLowerCase();
+                        bVal = b.full_name.toLowerCase();
+                        break;
+                    case 'email':
+                        aVal = a.email.toLowerCase();
+                        bVal = b.email.toLowerCase();
+                        break;
+                    case 'role':
+                        aVal = a.role;
+                        bVal = b.role;
+                        break;
+                    case 'created_at':
+                        aVal = new Date(a.created_at);
+                        bVal = new Date(b.created_at);
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+        
+        // Set sort column
+        function setSortColumn(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+            sortUsers();
+            renderUsers();
         }
         
         // Render users table
@@ -418,13 +490,19 @@
                 return;
             }
             
+            const getSortClass = (column) => {
+                if (sortColumn !== column) return 'sortable';
+                return sortDirection === 'asc' ? 'sort-asc' : 'sort-desc';
+            };
+            
             const html = `
                 <table class="users-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
+                            <th class="${getSortClass('full_name')}" onclick="setSortColumn('full_name')">Name</th>
+                            <th class="${getSortClass('email')}" onclick="setSortColumn('email')">Email</th>
+                            <th class="${getSortClass('role')}" onclick="setSortColumn('role')">Role</th>
+                            <th class="${getSortClass('created_at')}" onclick="setSortColumn('created_at')">Created</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -434,6 +512,7 @@
                                 <td>${escapeHtml(user.full_name)}</td>
                                 <td>${escapeHtml(user.email)}</td>
                                 <td><span class="role-badge role-${user.role}">${getRoleDisplay(user.role)}</span></td>
+                                <td style="color: #a0a0c0; font-size: 0.875rem;">${formatDate(user.created_at)}</td>
                                 <td>
                                     ${user.email !== currentAdmin.email ? `
                                         <button class="btn btn-sm btn-secondary" onclick="openEditModal('${user.id}')">Edit</button>
@@ -627,6 +706,15 @@
                 'consultant': 'Consultant'
             };
             return roles[role] || role;
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
         }
         
         function escapeHtml(text) {
