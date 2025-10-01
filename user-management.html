@@ -325,6 +325,8 @@
         // Initialize
         async function init() {
             try {
+                console.log('USER MGT: Starting initialization...');
+                
                 // Wait for VIFMSupabase
                 let attempts = 0;
                 while (!window.VIFMSupabase && attempts < 50) {
@@ -333,36 +335,53 @@
                 }
                 
                 if (!window.VIFMSupabase) {
+                    console.error('USER MGT: VIFMSupabase not available');
                     throw new Error('System not ready');
                 }
+                console.log('USER MGT: VIFMSupabase available');
                 
                 supabase = window.VIFMSupabase.getSupabaseClient();
+                console.log('USER MGT: Supabase client obtained');
                 
                 // Get current user
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                console.log('USER MGT: Auth user:', user ? user.id : 'null', 'Error:', userError);
+                
                 if (!user) {
+                    console.error('USER MGT: No authenticated user, redirecting to login');
                     window.location.href = 'login.html';
                     return;
                 }
                 
                 // Get profile
-                const { data: profile } = await supabase
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('user_id', user.id)
                     .single();
                 
-                if (!profile || profile.role !== 'admin') {
-                    showMessage('error', 'Admin access required');
+                console.log('USER MGT: Profile:', profile, 'Error:', profileError);
+                
+                if (!profile) {
+                    showMessage('error', 'Profile not found');
+                    console.error('USER MGT: No profile found for user');
                     setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
                     return;
                 }
                 
+                if (profile.role !== 'admin') {
+                    showMessage('error', 'Admin access required');
+                    console.error('USER MGT: User role is', profile.role, 'not admin');
+                    setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
+                    return;
+                }
+                
+                console.log('USER MGT: Admin verified:', profile.full_name);
                 currentAdmin = profile;
                 await loadUsers();
                 
             } catch (error) {
-                console.error('Init error:', error);
+                console.error('USER MGT: Init error:', error);
                 showMessage('error', 'Failed to load: ' + error.message);
             }
         }
