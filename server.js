@@ -134,7 +134,7 @@ async function sendActivityNotification(activityData) {
       toRecipients: [
         {
           emailAddress: {
-            address: 'akayed@viftraining.com'
+            address: 'asadeq@viftraining.com'
           }
         }
       ]
@@ -145,7 +145,7 @@ async function sendActivityNotification(activityData) {
       saveToSentItems: true
     });
 
-    console.log('✅ Email notification sent successfully to akayed@viftraining.com');
+    console.log('✅ Email notification sent successfully to asadeq@viftraining.com');
     return { success: true };
   } catch (error) {
     console.error('❌ Email notification failed:', error);
