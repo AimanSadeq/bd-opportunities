@@ -8,6 +8,7 @@ The VIFM (Virginia Institute of Finance and Management) Portal is a role-based b
 
 - **Communication Language**: Always respond in English
 - **Communication Style**: Simple, everyday language
+- **Database Access**: NEVER use Replit local PostgreSQL database. Application uses Supabase cloud database exclusively. All data queries must use Supabase client in application code.
 
 ## Production Upgrade Status
 
