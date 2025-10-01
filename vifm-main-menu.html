@@ -569,6 +569,11 @@
             try {
                 console.log('🔄 Initializing VIFM Dashboard...');
                 
+                // CRITICAL: Clear old session storage that might have stale data
+                sessionStorage.removeItem('current_user');
+                sessionStorage.removeItem('admin_session');
+                console.log('🧹 Cleared old session cache');
+                
                 // Get fresh user data from Supabase
                 currentUser = await getFreshUserData();
                 if (!currentUser) {
