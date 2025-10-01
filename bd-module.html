@@ -1292,7 +1292,7 @@
             consultantOpportunities.forEach(opp => {
                 const option = document.createElement('option');
                 option.value = opp.id;
-                option.textContent = `${opp.course_title} - ${opp.client_company}`;
+                option.textContent = `${opp.course_title} - ${opp.client_company} - ${opp.consultant_name}`;
                 dropdown.appendChild(option);
             });
         }
