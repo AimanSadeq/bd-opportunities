@@ -397,6 +397,7 @@
                     <div class="user-name" id="userName">Loading...</div>
                     <div class="user-role" id="userRole">...</div>
                 </div>
+                <button onclick="window.location.href='user-management.html'" class="btn-logout" id="userMgmtBtn" style="display: none; margin-right: 0.5rem;">👥 User Management</button>
                 <button onclick="logout()" class="btn-logout">Sign Out</button>
             </div>
         </div>
@@ -572,6 +573,11 @@
             else if (hour < 18) greeting = 'Good afternoon';
             
             document.getElementById('welcomeMessage').textContent = `${greeting}, ${currentUser.full_name}!`;
+            
+            // Show User Management button only for admins
+            if (currentUser.role === 'admin') {
+                document.getElementById('userMgmtBtn').style.display = 'inline-block';
+            }
         }
         
         // Get role display name
@@ -610,15 +616,6 @@
         icon: '💼',
         url: 'bd-module.html?v=20251001e',
         allowedRoles: ['bd', 'admin']
-    },
-    {
-        id: 'user-management',
-        title: 'User Management',
-        subtitle: 'Manage employee accounts',
-        description: 'Create user accounts, reset passwords, and manage access permissions',
-        icon: '👥',
-        url: 'user-management.html',
-        allowedRoles: ['admin']
     }
 ];
             
