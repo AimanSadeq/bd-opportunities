@@ -1560,6 +1560,21 @@
                 // Auto-set consultant name from authenticated user
                 const consultantSelector = document.getElementById('consultantSelector');
                 if (consultantSelector && profile.full_name) {
+                    // Check if the user's name is in the dropdown
+                    const userOption = Array.from(consultantSelector.options).find(
+                        opt => opt.value === profile.full_name
+                    );
+                    
+                    // If not in dropdown, add it
+                    if (!userOption && profile.full_name) {
+                        const newOption = document.createElement('option');
+                        newOption.value = profile.full_name;
+                        newOption.textContent = profile.full_name;
+                        consultantSelector.insertBefore(newOption, consultantSelector.options[1]);
+                        debugLog('➕ Added user to consultant list:', profile.full_name);
+                    }
+                    
+                    // Now select it
                     consultantSelector.value = profile.full_name;
                     localStorage.setItem('current_consultant', profile.full_name);
                     debugLog('✅ Auto-selected consultant:', profile.full_name);
