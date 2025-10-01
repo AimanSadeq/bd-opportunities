@@ -328,8 +328,8 @@
                     throw new Error('Supabase client failed to initialize');
                 }
                 
-                // Initialize Supabase
-                supabase = window.VIFMSupabase.client;
+                // Initialize Supabase using the correct function
+                supabase = window.VIFMSupabase.getSupabaseClient();
                 if (!supabase) {
                     throw new Error('Supabase client not available');
                 }
