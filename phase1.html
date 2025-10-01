@@ -1560,24 +1560,23 @@
                 // Auto-set consultant name from authenticated user
                 const consultantSelector = document.getElementById('consultantSelector');
                 if (consultantSelector && profile.full_name) {
-                    // Check if the user's name is in the dropdown
-                    const userOption = Array.from(consultantSelector.options).find(
-                        opt => opt.value === profile.full_name
-                    );
+                    // Remove all existing options
+                    consultantSelector.innerHTML = '';
                     
-                    // If not in dropdown, add it
-                    if (!userOption && profile.full_name) {
-                        const newOption = document.createElement('option');
-                        newOption.value = profile.full_name;
-                        newOption.textContent = profile.full_name;
-                        consultantSelector.insertBefore(newOption, consultantSelector.options[1]);
-                        debugLog('➕ Added user to consultant list:', profile.full_name);
-                    }
+                    // Add ONLY the logged-in user's name
+                    const userOption = document.createElement('option');
+                    userOption.value = profile.full_name;
+                    userOption.textContent = profile.full_name;
+                    consultantSelector.appendChild(userOption);
                     
-                    // Now select it
+                    // Select it
                     consultantSelector.value = profile.full_name;
+                    
+                    // Disable the selector so it can't be changed
+                    consultantSelector.disabled = true;
+                    
                     localStorage.setItem('current_consultant', profile.full_name);
-                    debugLog('✅ Auto-selected consultant:', profile.full_name);
+                    debugLog('✅ Auto-selected and locked consultant:', profile.full_name);
                 }
                 
                 // STEP 3: Initialize database connection  
