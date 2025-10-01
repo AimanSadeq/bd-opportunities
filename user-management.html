@@ -522,6 +522,18 @@
                     throw new Error('Email already exists');
                 }
                 
+                // CRITICAL: Save admin session before creating user
+                // signUp() will automatically log in the new user, replacing our admin session
+                const { data: adminSession } = await supabase.auth.getSession();
+                const adminAccessToken = adminSession?.session?.access_token;
+                const adminRefreshToken = adminSession?.session?.refresh_token;
+                
+                if (!adminAccessToken) {
+                    throw new Error('Admin session not found');
+                }
+                
+                console.log('Admin session saved, creating new user...');
+                
                 // Use the centralized signup function from VIFMSupabase
                 const result = await window.VIFMSupabase.Auth.signUp(email, password, fullName, role);
                 
@@ -541,11 +553,25 @@
                     
                     if (updateError) {
                         console.error('Role update error:', updateError);
-                        showMessage('success', `User ${fullName} created but role assignment failed. Please edit the user to set role.`);
-                        return;
                     }
                 }
                 
+                // CRITICAL: Immediately sign out the newly created user
+                await supabase.auth.signOut();
+                console.log('New user signed out');
+                
+                // CRITICAL: Restore admin session
+                const { error: restoreError } = await supabase.auth.setSession({
+                    access_token: adminAccessToken,
+                    refresh_token: adminRefreshToken
+                });
+                
+                if (restoreError) {
+                    console.error('Failed to restore admin session:', restoreError);
+                    throw new Error('User created but admin session lost. Please log in again.');
+                }
+                
+                console.log('Admin session restored');
                 showMessage('success', `User ${fullName} created successfully with role: ${getRoleDisplay(role)}`);
                 
             } catch (error) {
