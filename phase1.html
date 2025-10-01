@@ -1216,6 +1216,25 @@
                         showMessage('success', saveStatus === 'draft' ? 
                             '✅ Draft saved to database!' : 
                             '✅ Opportunity submitted successfully to database!');
+                        
+                        // Send email notification to akayed@viftraining.com
+                        try {
+                            await fetch('/api/notify-activity', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    date: savedOpp.course_date,
+                                    company: savedOpp.client_company,
+                                    contact: savedOpp.delegate_name,
+                                    module: 'Consultant Opportunities',
+                                    notes: savedOpp.discussion_notes,
+                                    next_actions: savedOpp.consultant_action
+                                })
+                            });
+                            debugLog('📧 Email notification sent');
+                        } catch (emailError) {
+                            debugLog('⚠️ Email notification failed (non-critical):', emailError);
+                        }
                     }
                     
                     // Also save to localStorage as backup

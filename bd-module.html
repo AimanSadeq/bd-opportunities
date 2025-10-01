@@ -1131,6 +1131,26 @@
                     // Create new opportunity
                     result = await window.VIFMSupabase.Database.insert('bd_opportunities', formData);
                     showMessage('success', 'BD opportunity created successfully');
+                    
+                    // Send email notification to akayed@viftraining.com
+                    try {
+                        await fetch('/api/notify-activity', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                date: result.tentative_date,
+                                company: result.client,
+                                contact: result.primary_contact,
+                                module: 'Business Development',
+                                stage: result.pipeline_stage,
+                                notes: result.bd_notes,
+                                next_actions: result.next_actions
+                            })
+                        });
+                        console.log('📧 Email notification sent');
+                    } catch (emailError) {
+                        console.log('⚠️ Email notification failed (non-critical):', emailError);
+                    }
                 }
 
                 // Reload data, repopulate filters, and clear form
