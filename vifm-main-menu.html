@@ -798,7 +798,6 @@
             
             modules.forEach(module => {
                 const hasAccess = module.allowedRoles.includes(currentUser.role);
-                console.log(`Module: ${module.title}, hasAccess: ${hasAccess}, userRole: ${currentUser.role}, allowedRoles:`, module.allowedRoles);
                 navHTML += `
                     <div class="nav-card ${!hasAccess ? 'disabled' : ''}">
                         <div class="nav-card-content">
@@ -813,7 +812,7 @@
                                 </span>
                             </div>
                             <div class="nav-card-description">${module.description}</div>
-                            ${hasAccess ? `<button class="nav-card-action" onclick="navigateTo('${module.url}')">Open Module →</button>` : ''}
+                            ${hasAccess ? `<a href="${module.url}" style="text-decoration: none;"><button class="nav-card-action">Open Module →</button></a>` : ''}
                         </div>
                     </div>
                 `;
