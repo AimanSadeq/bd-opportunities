@@ -414,13 +414,24 @@
                         </div>
                         <div class="user-actions">
                             ${user.email !== currentAdmin.email ? `
-                                <button class="btn btn-sm btn-secondary" onclick="resetUserPassword('${escapeHtml(user.email)}', '${escapeHtml(user.full_name)}')">
+                                <button class="btn btn-sm btn-secondary reset-password-btn" 
+                                        data-email="${escapeHtml(user.email)}" 
+                                        data-name="${escapeHtml(user.full_name)}">
                                     Reset Password
                                 </button>
                             ` : ''}
                         </div>
                     </div>
                 `).join('');
+                
+                // Attach event listeners to reset password buttons
+                document.querySelectorAll('.reset-password-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const email = this.getAttribute('data-email');
+                        const name = this.getAttribute('data-name');
+                        resetUserPassword(email, name);
+                    });
+                });
                 
             } catch (error) {
                 console.error('❌ Error loading users:', error);
