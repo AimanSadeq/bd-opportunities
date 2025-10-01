@@ -389,18 +389,22 @@
         // Load all users
         async function loadUsers() {
             try {
+                console.log('USER MGT: Loading users...');
                 const { data, error } = await supabase
                     .from('profiles')
                     .select('*')
                     .order('created_at', { ascending: false });
                 
+                console.log('USER MGT: Query result - Data count:', data?.length, 'Error:', error);
+                
                 if (error) throw error;
                 
                 users = data || [];
+                console.log('USER MGT: Users array set, total:', users.length);
                 renderUsers();
                 
             } catch (error) {
-                console.error('Load users error:', error);
+                console.error('USER MGT: Load users error:', error);
                 showMessage('error', 'Failed to load users');
             }
         }
