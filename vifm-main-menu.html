@@ -798,6 +798,7 @@
             
             modules.forEach(module => {
                 const hasAccess = module.allowedRoles.includes(currentUser.role);
+                console.log(`Module: ${module.title}, hasAccess: ${hasAccess}, userRole: ${currentUser.role}, allowedRoles:`, module.allowedRoles);
                 navHTML += `
                     <div class="nav-card ${!hasAccess ? 'disabled' : ''}" 
                          ${hasAccess ? `onclick="navigateTo('${module.url}')"` : ''}>
@@ -824,6 +825,8 @@
         
         // Navigate to module
         function navigateTo(url) {
+            console.log('🔄 Navigating to:', url);
+            console.log('Current user role:', currentUser?.role);
             window.location.href = url;
         }
         
