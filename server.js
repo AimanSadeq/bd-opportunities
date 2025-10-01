@@ -104,7 +104,7 @@ async function sendActivityNotification(activityData) {
       if (activityData.city) emailRows += `
         <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">City:</td><td style="padding: 8px 0;">${activityData.city}</td></tr>`;
       if (activityData.priority) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Priority:</td><td style="padding: 8px 0;">${activityData.priority.toUpperCase()}</td></tr>`;
+        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Priority:</td><td style="padding: 8px 0;">${String(activityData.priority).toUpperCase()}</td></tr>`;
       if (activityData.status) emailRows += `
         <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Status:</td><td style="padding: 8px 0;">${activityData.status}</td></tr>`;
       if (activityData.consultant_name) emailRows += `
@@ -136,7 +136,7 @@ async function sendActivityNotification(activityData) {
       if (activityData.contact_phone) emailRows += `
         <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Contact Phone:</td><td style="padding: 8px 0;">${activityData.contact_phone}</td></tr>`;
       if (activityData.estimated_budget) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Estimated Budget:</td><td style="padding: 8px 0;">$${activityData.estimated_budget.toLocaleString()}</td></tr>`;
+        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Estimated Budget:</td><td style="padding: 8px 0;">$${Number(activityData.estimated_budget).toLocaleString()}</td></tr>`;
       if (activityData.pipeline_stage) emailRows += `
         <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Pipeline Stage:</td><td style="padding: 8px 0;"><strong>${activityData.pipeline_stage}</strong></td></tr>`;
       if (activityData.probability) emailRows += `
@@ -178,7 +178,7 @@ async function sendActivityNotification(activityData) {
     `;
 
     const message = {
-      subject: `New Activity: ${activityData.company || 'Unknown Company'}`,
+      subject: `New Activity: ${companyName}`,
       body: {
         contentType: 'HTML',
         content: emailBody
