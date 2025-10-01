@@ -821,14 +821,16 @@
                     <div class="search-grid">
                         <div class="form-group">
                             <label class="form-label">Search Client</label>
-                            <input type="text" id="searchClient" class="form-input" 
-                                   placeholder="Search by client name" onkeyup="filterBDTable()">
+                            <select id="searchClient" class="form-select" onchange="filterBDTable()">
+                                <option value="">All clients</option>
+                            </select>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">Filter Consultant</label>
-                            <input type="text" id="filterConsultant" class="form-input" 
-                                   placeholder="Consultant name" onkeyup="filterBDTable()">
+                            <select id="filterConsultant" class="form-select" onchange="filterBDTable()">
+                                <option value="">All consultants</option>
+                            </select>
                         </div>
                         
                         <div class="form-group">
@@ -845,8 +847,9 @@
                         
                         <div class="form-group">
                             <label class="form-label">Filter BD Prof</label>
-                            <input type="text" id="filterBDProf" class="form-input" 
-                                   placeholder="BD professional" onkeyup="filterBDTable()">
+                            <select id="filterBDProf" class="form-select" onchange="filterBDTable()">
+                                <option value="">All BD professionals</option>
+                            </select>
                         </div>
                         
                         <div class="form-group">
@@ -861,6 +864,7 @@
                     <table class="bd-table">
                         <thead>
                             <tr>
+                                <th>Actions</th>
                                 <th>Client</th>
                                 <th>Course</th>
                                 <th>Consultant</th>
@@ -870,7 +874,6 @@
                                 <th>Prob.</th>
                                 <th>Close Date</th>
                                 <th>BD Prof</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="bdTableBody">
@@ -1092,6 +1095,10 @@
             
             tbody.innerHTML = opportunities.map(opp => `
                 <tr>
+                    <td>
+                        <button onclick="editBDOpportunity('${opp.id}')" class="btn-warning">Edit</button>
+                        <button onclick="deleteBDOpportunity('${opp.id}')" class="btn-danger">Delete</button>
+                    </td>
                     <td class="client-cell">${escapeHtml(opp.client)}</td>
                     <td>${escapeHtml(opp.course_title)}</td>
                     <td>${escapeHtml(opp.consultant_name || '-')}</td>
@@ -1105,10 +1112,6 @@
                     <td>${opp.probability || 0}%</td>
                     <td>${formatDate(opp.expected_close_date)}</td>
                     <td>${escapeHtml(opp.bd_prof || '-')}</td>
-                    <td>
-                        <button onclick="editBDOpportunity('${opp.id}')" class="btn-warning">Edit</button>
-                        <button onclick="deleteBDOpportunity('${opp.id}')" class="btn-danger">Delete</button>
-                    </td>
                 </tr>
             `).join('');
         }
