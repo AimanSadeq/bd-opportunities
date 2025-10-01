@@ -1421,6 +1421,25 @@
                 
                 console.log('🎯 FORCED page and content visibility ON');
                 
+                // STEP 5: Add event listener for Source Opportunity auto-populate
+                const sourceDropdown = document.getElementById('sourceOpportunityId');
+                if (sourceDropdown) {
+                    sourceDropdown.addEventListener('change', function() {
+                        const selectedId = this.value;
+                        if (selectedId) {
+                            // Find the selected consultant opportunity
+                            const selectedOpp = consultantOpportunities.find(opp => opp.id == selectedId);
+                            if (selectedOpp) {
+                                // Auto-populate form fields from consultant opportunity
+                                document.getElementById('courseTitle').value = selectedOpp.course_title || '';
+                                document.getElementById('client').value = selectedOpp.client || '';
+                                document.getElementById('consultantName').value = selectedOpp.consultant || '';
+                                console.log('✅ Auto-populated form from source opportunity:', selectedOpp.course_title);
+                            }
+                        }
+                    });
+                }
+                
             } catch (error) {
                 console.error('❌ BD Module initialization error:', error);
                 updateConnectionStatus(false, 'Error: ' + error.message);
