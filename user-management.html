@@ -345,7 +345,7 @@
                 
                 // Get current user
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
-                console.log('USER MGT: Auth user:', user ? user.id : 'null', 'Error:', userError);
+                console.log('USER MGT: Auth user:', user ? user.email : 'null', 'Error:', userError);
                 
                 if (!user) {
                     console.error('USER MGT: No authenticated user, redirecting to login');
@@ -353,11 +353,11 @@
                     return;
                 }
                 
-                // Get profile
+                // Get profile by email (RLS policy allows this)
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
-                    .eq('user_id', user.id)
+                    .eq('email', user.email)
                     .single();
                 
                 console.log('USER MGT: Profile:', profile, 'Error:', profileError);
