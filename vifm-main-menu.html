@@ -42,6 +42,13 @@
             await window.VIFMRouteGuards.executePreRenderSecurity();
         })();
         
+        // CRITICAL: Check if we have the version parameter, if not redirect to add it
+        if (!window.location.search.includes('nocache=20251001v2')) {
+            const newUrl = window.location.pathname + '?nocache=20251001v2' + window.location.hash;
+            console.log('🔄 Forcing cache-free reload...');
+            window.location.replace(newUrl);
+        }
+        
         // CRITICAL: Force remove any cached stats grid when DOM loads
         document.addEventListener('DOMContentLoaded', function() {
             const statsGrid = document.getElementById('statsGrid');
