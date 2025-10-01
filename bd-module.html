@@ -651,10 +651,8 @@
             </div>
             <div class="user-info">
                 <label style="margin-right: 0.5rem; font-size: 0.875rem;">BD Professional:</label>
-                <select id="bdSelector" class="bd-selector" onchange="saveBDName()">
-                    <option value="">Select BD Prof</option>
-                    <option value="Amal Kayed">Amal Kayed</option>
-                    <option value="Wael Ghosheh">Wael Ghosheh</option>
+                <select id="bdSelector" class="bd-selector" disabled>
+                    <option value="">Loading...</option>
                 </select>
                 <button onclick="importFromConsultants()" class="btn btn-info">Import Opportunities</button>
                 <button onclick="exportBDData()" class="btn btn-secondary">Export BD Data</button>
@@ -1369,13 +1367,21 @@
                 
                 console.log('✅ Authentication verified for BD user:', profile.full_name);
                 
-                // STEP 2: Auto-set BD professional name from authenticated user
-                if (profile.role === 'bd') {
-                    const bdSelector = document.getElementById('bdSelector');
-                    if (bdSelector && profile.full_name) {
-                        bdSelector.value = profile.full_name;
-                        localStorage.setItem('current_bd_prof', profile.full_name);
-                    }
+                // STEP 2: Set BD professional name from authenticated user (locked)
+                const bdSelector = document.getElementById('bdSelector');
+                if (bdSelector && profile.full_name) {
+                    // Clear existing options
+                    bdSelector.innerHTML = '';
+                    
+                    // Add only the logged-in user's name
+                    const option = document.createElement('option');
+                    option.value = profile.full_name;
+                    option.textContent = profile.full_name;
+                    option.selected = true;
+                    bdSelector.appendChild(option);
+                    
+                    // Keep disabled to prevent changes
+                    console.log('✅ BD Professional locked to:', profile.full_name);
                 }
                 
                 // STEP 3: Initialize database connection
