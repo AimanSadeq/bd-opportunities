@@ -432,7 +432,7 @@
                                 <td><span class="role-badge role-${user.role}">${getRoleDisplay(user.role)}</span></td>
                                 <td>
                                     ${user.email !== currentAdmin.email ? `
-                                        <button class="btn btn-sm btn-secondary" onclick="openEditModal('${user.user_id}')">Edit</button>
+                                        <button class="btn btn-sm btn-secondary" onclick="openEditModal('${user.id}')">Edit</button>
                                         <button class="btn btn-sm btn-secondary" onclick="resetPassword('${escapeHtml(user.email)}', '${escapeHtml(user.full_name)}')">Reset Password</button>
                                     ` : '<em style="color: #a0a0c0;">Current User</em>'}
                                 </td>
@@ -458,7 +458,7 @@
         
         // Open edit modal
         function openEditModal(userId) {
-            const user = users.find(u => u.user_id === userId);
+            const user = users.find(u => u.id === userId);
             if (!user) return;
             
             editingUserId = userId;
@@ -508,44 +508,50 @@
         
         // Create new user
         async function createUser(fullName, email, role, password) {
-            // Check if email already exists
-            const { data: existing } = await supabase
-                .from('profiles')
-                .select('email')
-                .eq('email', email)
-                .single();
-            
-            if (existing) {
-                throw new Error('Email already exists');
-            }
-            
-            // Create auth user
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: fullName,
-                        role: role
+            try {
+                console.log('Creating user:', email, role);
+                
+                // Check if email already exists
+                const { data: existing } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('email', email)
+                    .maybeSingle();
+                
+                if (existing) {
+                    throw new Error('Email already exists');
+                }
+                
+                // Use the centralized signup function from VIFMSupabase
+                const result = await window.VIFMSupabase.Auth.signUp(email, password, fullName, role);
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to create user');
+                }
+                
+                console.log('User created via Auth.signUp:', result);
+                
+                // If profile was created but role needs updating (signUp defaults to 'consultant')
+                if (result.profile && role !== 'consultant') {
+                    // Update the role
+                    const { error: updateError } = await supabase
+                        .from('profiles')
+                        .update({ role: role })
+                        .eq('email', email);
+                    
+                    if (updateError) {
+                        console.error('Role update error:', updateError);
+                        showMessage('success', `User ${fullName} created but role assignment failed. Please edit the user to set role.`);
+                        return;
                     }
                 }
-            });
-            
-            if (authError) throw authError;
-            
-            // Create profile
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .insert({
-                    user_id: authData.user.id,
-                    email: email,
-                    full_name: fullName,
-                    role: role
-                });
-            
-            if (profileError) throw profileError;
-            
-            showMessage('success', `User ${fullName} created successfully`);
+                
+                showMessage('success', `User ${fullName} created successfully with role: ${getRoleDisplay(role)}`);
+                
+            } catch (error) {
+                console.error('Create user error:', error);
+                throw error;
+            }
         }
         
         // Update user
@@ -557,7 +563,7 @@
                     email: email,
                     role: role
                 })
-                .eq('user_id', userId);
+                .eq('id', userId);
             
             if (error) throw error;
             
