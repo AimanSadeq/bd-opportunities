@@ -14,7 +14,7 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 40713
+localPort = 40133
 externalPort = 3000
 
 [languages]
@@ -30,7 +30,7 @@ pattern = "**/*.{js,jsx,ts,tsx}"
 
 [agent]
 expertMode = true
-integrations = ["javascript_supabase:1.0.0"]
+integrations = ["javascript_supabase:1.0.0", "outlook:1.0.0"]
 
 [workflows]
 runButton = "Project"
@@ -48,10 +48,10 @@ args = "VIFM Portal"
 name = "VIFM Portal"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python3 -m http.server 5000 --bind 0.0.0.0"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
+waitForPort = 5000
