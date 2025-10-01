@@ -699,6 +699,8 @@
                                 <th>Contact</th>
                                 <th>Status</th>
                                 <th>Consultant</th>
+                                <th>BD Notes</th>
+                                <th>Next Actions</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -1268,7 +1270,7 @@
             if (data.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="no-data">
+                        <td colspan="8" class="no-data">
                             No opportunities recorded yet. Add your first opportunity using the form on the left.
                         </td>
                     </tr>
@@ -1293,6 +1295,8 @@
                             </span>
                         </td>
                         <td>${escapeHtml(opp.consultant_name) || '-'}</td>
+                        <td style="max-width: 200px; font-size: 0.7rem;">${opp.bd_action ? escapeHtml(opp.bd_action) : '-'}</td>
+                        <td style="max-width: 200px; font-size: 0.7rem;">${opp.consultant_action ? escapeHtml(opp.consultant_action) : '-'}</td>
                         <td>
                             <button onclick="editOpportunity('${opp.id}')" class="btn btn-warning">Edit</button>
                             <button onclick="deleteOpportunity('${opp.id}')" class="btn btn-danger">Delete</button>
