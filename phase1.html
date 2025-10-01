@@ -1614,9 +1614,10 @@
                     return;
                 }
                 
-                // Block BD role from accessing consultant module
-                if (profile.role === 'bd') {
-                    debugLog('⚠️ Access denied: BD role cannot access Consultant module');
+                // BD-only restricted users (email-based access control)
+                const bdOnlyUsers = ['akayed@viftraining.com', 'wael@viftraining.com'];
+                if (bdOnlyUsers.includes(user.email)) {
+                    debugLog('⚠️ Access denied: User restricted to BD module only');
                     alert('You do not have access to the Consultant Opportunities module.');
                     window.location.href = 'bd-module.html';
                     return;
