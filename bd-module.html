@@ -972,11 +972,9 @@
                 });
 
                 consultantOpportunities = data || [];
+                updateSourceOpportunityDropdown();
                 
                 console.log('✅ Loaded', consultantOpportunities.length, 'consultant opportunities');
-                console.log('📊 Sample opportunity data:', consultantOpportunities[0]);
-                
-                updateSourceOpportunityDropdown();
 
             } catch (error) {
                 console.error('❌ Error loading consultant opportunities:', error);
