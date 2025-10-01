@@ -203,25 +203,29 @@
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: 1rem;
         }
 
-        /* Pipeline Overview - Smaller KPIs */
+        /* Pipeline Overview - Inline KPIs */
         .pipeline-stages {
             display: flex;
             gap: 0.4rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             align-items: stretch;
         }
 
         .pipeline-stage {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 0.4rem 0.6rem;
+            padding: 0.35rem 0.6rem;
             border-radius: 6px;
             text-align: center;
             box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
             flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
         }
         
         .pipeline-stage.closed-lost {
@@ -230,34 +234,38 @@
         }
 
         .stage-title {
-            font-size: 0.625rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-bottom: 0.15rem;
+            margin: 0;
         }
 
         .stage-count {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
-            margin-bottom: 0;
+            margin: 0;
+        }
+        
+        .pipeline-stage.closed-lost .stage-title {
+            font-size: 0.65rem;
         }
         
         .pipeline-stage.closed-lost .stage-count {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         /* Dashboard Layout - Stacked: Form on top, List below */
         .dashboard {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-panel {
             background: var(--surface);
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 1.25rem;
+            padding: 1rem;
         }
 
         .list-panel {
@@ -284,22 +292,22 @@
         .form-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 0.75rem;
-            margin-bottom: 0.75rem;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
         }
 
         .form-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            margin-bottom: 0.75rem;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
         }
         
         .form-grid-5 {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 0.75rem;
-            margin-bottom: 0.75rem;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
         }
 
         .form-group {
@@ -681,23 +689,23 @@
         <!-- Pipeline Overview -->
         <div class="pipeline-stages">
             <div class="pipeline-stage">
-                <div class="stage-title">Qualified</div>
+                <div class="stage-title">Qualified:</div>
                 <div class="stage-count" id="qualifiedCount">0</div>
             </div>
             <div class="pipeline-stage">
-                <div class="stage-title">Proposal</div>
+                <div class="stage-title">Proposal:</div>
                 <div class="stage-count" id="proposalCount">0</div>
             </div>
             <div class="pipeline-stage">
-                <div class="stage-title">Negotiation</div>
+                <div class="stage-title">Negotiation:</div>
                 <div class="stage-count" id="negotiationCount">0</div>
             </div>
             <div class="pipeline-stage">
-                <div class="stage-title">Closed Won</div>
+                <div class="stage-title">Closed Won:</div>
                 <div class="stage-count" id="wonCount">0</div>
             </div>
             <div class="pipeline-stage closed-lost">
-                <div class="stage-title">Closed Lost</div>
+                <div class="stage-title">Closed Lost:</div>
                 <div class="stage-count" id="lostCount">0</div>
             </div>
         </div>
@@ -1083,8 +1091,8 @@
                 probability: parseInt(document.getElementById('probability').value) || 25,
                 expected_close_date: document.getElementById('expectedCloseDate').value || null,
                 competitors: document.getElementById('competitors').value || null,
-                bd_notes: document.getElementById('bdNotes').value || null,
-                next_actions: document.getElementById('nextActions').value || null,
+                bd_action: document.getElementById('bdNotes').value || null,
+                consultant_action: document.getElementById('nextActions').value || null,
                 bd_prof: document.getElementById('bdSelector').value || null
             };
 
@@ -1191,8 +1199,8 @@
                     <td>${opp.probability || 0}%</td>
                     <td>${formatDate(opp.expected_close_date)}</td>
                     <td>${escapeHtml(opp.bd_prof || '-')}</td>
-                    <td style="max-width: 200px; font-size: 0.7rem;">${opp.bd_action ? escapeHtml(opp.bd_action) : '-'}</td>
-                    <td style="max-width: 200px; font-size: 0.7rem;">${opp.consultant_action ? escapeHtml(opp.consultant_action) : '-'}</td>
+                    <td style="max-width: 200px; font-size: 0.7rem; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">${opp.bd_action ? escapeHtml(opp.bd_action) : '-'}</td>
+                    <td style="max-width: 200px; font-size: 0.7rem; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">${opp.consultant_action ? escapeHtml(opp.consultant_action) : '-'}</td>
                 </tr>
             `).join('');
         }
@@ -1265,8 +1273,8 @@
             document.getElementById('probability').value = opp.probability || 25;
             document.getElementById('expectedCloseDate').value = opp.expected_close_date || '';
             document.getElementById('competitors').value = opp.competitors || '';
-            document.getElementById('bdNotes').value = opp.bd_notes || '';
-            document.getElementById('nextActions').value = opp.next_actions || '';
+            document.getElementById('bdNotes').value = opp.bd_action || '';
+            document.getElementById('nextActions').value = opp.consultant_action || '';
             
             showMessage('info', 'Editing BD opportunity');
         }
