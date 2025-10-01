@@ -30,23 +30,8 @@
     </style>
     
     <script>
+        // Show loading screen while page initializes
         document.write('<div class="auth-loading"><div style="text-align: center;"><div style="font-size: 2rem; margin-bottom: 1rem;">🔒</div><h2 style="margin-bottom: 0.5rem;">Verifying Admin Access...</h2><p style="opacity: 0.8;">Loading User Management...</p></div></div>');
-        
-        (async function() {
-            // Wait for route guards to be available
-            let attempts = 0;
-            while (!window.VIFMRouteGuards && attempts < 50) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-            }
-            
-            if (window.VIFMRouteGuards && window.VIFMRouteGuards.executePreRenderSecurity) {
-                await window.VIFMRouteGuards.executePreRenderSecurity('admin');
-            } else {
-                console.error('❌ Route guards not available');
-                window.location.href = 'login.html';
-            }
-        })();
     </script>
     
     <style>
