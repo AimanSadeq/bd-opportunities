@@ -210,29 +210,29 @@
         .pipeline-stages {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
         }
 
         .pipeline-stage {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1rem;
-            border-radius: 12px;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
         }
 
         .stage-title {
-            font-size: 0.875rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .stage-count {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0;
         }
 
         /* Dashboard Layout */
@@ -873,11 +873,13 @@
                                 <th>Prob.</th>
                                 <th>Close Date</th>
                                 <th>BD Prof</th>
+                                <th>BD Notes</th>
+                                <th>Next Actions</th>
                             </tr>
                         </thead>
                         <tbody id="bdTableBody">
                             <tr>
-                                <td colspan="10" class="no-data">
+                                <td colspan="12" class="no-data">
                                     No BD opportunities found. Add your first opportunity using the form.
                                 </td>
                             </tr>
@@ -977,12 +979,83 @@
 
                 consultantOpportunities = data || [];
                 updateSourceOpportunityDropdown();
+                displayConsultantOpportunitiesForBD();
                 
                 console.log('✅ Loaded', consultantOpportunities.length, 'consultant opportunities');
 
             } catch (error) {
                 console.error('❌ Error loading consultant opportunities:', error);
             }
+        }
+        
+        // Display consultant opportunities in import modal (READ-ONLY for BD users)
+        function displayConsultantOpportunitiesForBD() {
+            const importContent = document.getElementById('importContent');
+            
+            if (consultantOpportunities.length === 0) {
+                importContent.innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">No consultant opportunities available to import.</p>';
+                return;
+            }
+            
+            importContent.innerHTML = `
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse;">
+                        <thead style="background: #f8fafc; position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 0.5rem; text-align: left; border-bottom: 2px solid #e2e8f0;">Client</th>
+                                <th style="padding: 0.5rem; text-align: left; border-bottom: 2px solid #e2e8f0;">Course</th>
+                                <th style="padding: 0.5rem; text-align: left; border-bottom: 2px solid #e2e8f0;">Consultant</th>
+                                <th style="padding: 0.5rem; text-align: left; border-bottom: 2px solid #e2e8f0;">Status</th>
+                                <th style="padding: 0.5rem; text-align: center; border-bottom: 2px solid #e2e8f0;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${consultantOpportunities.map(opp => `
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 0.5rem;">${escapeHtml(opp.client)}</td>
+                                    <td style="padding: 0.5rem;">${escapeHtml(opp.course_title)}</td>
+                                    <td style="padding: 0.5rem;">${escapeHtml(opp.consultant_name || '-')}</td>
+                                    <td style="padding: 0.5rem;">
+                                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; background: #dbeafe; color: #1e40af;">
+                                            ${opp.status || 'new'}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 0.5rem; text-align: center;">
+                                        <button onclick="importOpportunityToBD('${opp.id}')" class="btn btn-info" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+                                            Import to BD
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; font-size: 0.875rem; color: #64748b; text-align: center;">
+                    🔒 Consultant opportunities are read-only. You can import them to BD pipeline for further actions.
+                </p>
+            `;
+        }
+        
+        // Import consultant opportunity to BD pipeline
+        function importOpportunityToBD(opportunityId) {
+            const consultantOpp = consultantOpportunities.find(opp => opp.id === opportunityId);
+            if (!consultantOpp) return;
+            
+            // Pre-fill BD form with consultant opportunity data
+            document.getElementById('sourceOpportunityId').value = opportunityId;
+            document.getElementById('courseTitle').value = consultantOpp.course_title || '';
+            document.getElementById('client').value = consultantOpp.client || '';
+            document.getElementById('consultantName').value = consultantOpp.consultant_name || '';
+            document.getElementById('primaryContact').value = consultantOpp.delegate_name || '';
+            document.getElementById('contactTitle').value = consultantOpp.delegate_title || '';
+            document.getElementById('contactEmail').value = consultantOpp.delegate_email || '';
+            document.getElementById('contactPhone').value = consultantOpp.delegate_phone || '';
+            
+            // Close modal
+            closeImportModal();
+            
+            // Show success message
+            showMessage('info', `Imported: ${consultantOpp.client} - ${consultantOpp.course_title}. Complete the BD details and save.`);
         }
 
         // Submit BD opportunity using centralized database
@@ -1085,7 +1158,7 @@
             if (!opportunities || opportunities.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="10" class="no-data">
+                        <td colspan="12" class="no-data">
                             No BD opportunities found. Add your first opportunity using the form.
                         </td>
                     </tr>
@@ -1112,6 +1185,8 @@
                     <td>${opp.probability || 0}%</td>
                     <td>${formatDate(opp.expected_close_date)}</td>
                     <td>${escapeHtml(opp.bd_prof || '-')}</td>
+                    <td style="max-width: 200px; font-size: 0.7rem;">${opp.bd_action ? escapeHtml(opp.bd_action) : '-'}</td>
+                    <td style="max-width: 200px; font-size: 0.7rem;">${opp.consultant_action ? escapeHtml(opp.consultant_action) : '-'}</td>
                 </tr>
             `).join('');
         }
