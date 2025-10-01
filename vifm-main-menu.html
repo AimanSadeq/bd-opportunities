@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIFM Business Development Portal - Dashboard</title>
     
-    <!-- Force cache refresh -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <!-- Force cache refresh with timestamp -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <meta name="version" content="20251001-redesign-v2">
     
     <!-- Production Environment Configuration -->
     <script src="env.js"></script>
@@ -40,6 +41,21 @@
         (async function() {
             await window.VIFMRouteGuards.executePreRenderSecurity();
         })();
+        
+        // CRITICAL: Force remove any cached stats grid when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const statsGrid = document.getElementById('statsGrid');
+            if (statsGrid) {
+                console.log('🗑️ Removing cached stats grid');
+                statsGrid.remove();
+            }
+            // Also remove subtitle if it exists
+            const subtitle = document.getElementById('welcomeSubtitle');
+            if (subtitle) {
+                console.log('🗑️ Removing cached subtitle');
+                subtitle.remove();
+            }
+        });
     </script>
     
     <!-- Google Fonts - Open Sans -->
