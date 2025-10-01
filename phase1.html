@@ -1244,8 +1244,12 @@
                                         bd_action: savedOpp.bd_action,
                                         consultant_name: savedOpp.consultant_name
                                     })
-                                }).catch(err => debugLog('Email queued'));
-                                debugLog('📧 Email notification queued');
+                                }).then(response => {
+                                    debugLog('📧 Email notification sent to server');
+                                }).catch(err => {
+                                    debugLog('⚠️ Email notification error:', err);
+                                });
+                                debugLog('📧 Email notification request started');
                             }
                         } catch (emailError) {
                             debugLog('⚠️ Email notification skipped:', emailError);

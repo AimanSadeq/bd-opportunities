@@ -1162,8 +1162,12 @@
                                     next_actions: result.next_actions,
                                     bd_prof: result.bd_prof
                                 })
-                            }).catch(err => console.log('Email queued'));
-                            console.log('📧 Email notification queued');
+                            }).then(response => {
+                                console.log('📧 Email notification sent to server');
+                            }).catch(err => {
+                                console.log('⚠️ Email notification error:', err);
+                            });
+                            console.log('📧 Email notification request started');
                         }
                     } catch (emailError) {
                         console.log('⚠️ Email notification skipped:', emailError);
