@@ -754,22 +754,11 @@
                         </div>
                         
                         <!-- Business Details -->
-                        <div class="form-grid-3">
+                        <div class="form-grid">
                             <div class="form-group">
                                 <label class="form-label">Estimated Budget (AED)</label>
                                 <input type="number" id="estimatedBudget" class="form-input" 
                                        placeholder="0" min="0" step="100">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Pipeline Stage</label>
-                                <select id="pipelineStage" class="form-select">
-                                    <option value="qualified">Qualified</option>
-                                    <option value="proposal">Proposal</option>
-                                    <option value="negotiation">Negotiation</option>
-                                    <option value="closed-won">Closed Won</option>
-                                    <option value="closed-lost">Closed Lost</option>
-                                </select>
                             </div>
                             
                             <div class="form-group">
@@ -801,6 +790,17 @@
                             <label class="form-label">Next Actions</label>
                             <textarea id="nextActions" class="form-textarea" rows="2" 
                                       placeholder="Planned follow-up actions"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Pipeline Stage</label>
+                            <select id="pipelineStage" class="form-select">
+                                <option value="qualified">Qualified</option>
+                                <option value="proposal">Proposal</option>
+                                <option value="negotiation">Negotiation</option>
+                                <option value="closed-won">Closed Won</option>
+                                <option value="closed-lost">Closed Lost</option>
+                            </select>
                         </div>
                         
                         <div class="btn-group">
