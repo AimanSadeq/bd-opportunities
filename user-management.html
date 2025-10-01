@@ -432,7 +432,7 @@
     <!-- Header -->
     <header>
         <div class="header-content">
-            <a href="vifm-main-menu.html" class="back-btn">
+            <a href="dashboard.html" class="back-btn">
                 ← Back to Dashboard
             </a>
             <h1 class="page-title">👥 User Management</h1>
@@ -552,14 +552,14 @@
                 if (!profile) {
                     showMessage('error', 'Profile not found');
                     console.error('USER MGT: No profile found for user');
-                    setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
+                    setTimeout(() => window.location.href = 'dashboard.html', 2000);
                     return;
                 }
                 
                 if (profile.role !== 'admin') {
                     showMessage('error', 'Admin access required');
                     console.error('USER MGT: User role is', profile.role, 'not admin');
-                    setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
+                    setTimeout(() => window.location.href = 'dashboard.html', 2000);
                     return;
                 }
                 

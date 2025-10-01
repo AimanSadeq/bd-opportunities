@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIFM Business Development Portal - Dashboard</title>
+    
+    <!-- Force cache refresh with timestamp -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="version" content="20251001-redesign-v2">
+    
+    <!-- Production Environment Configuration -->
+    <script src="env.js"></script>
+    
+    <!-- Add Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- VIFM Supabase Configuration -->
+    <script src="supabase.js?v=20251001-3"></script>
+    <!-- Universal Route Guards -->
+    <script src="route-guards.js?v=20251001-3"></script>
+    
+    <!-- Pre-render Security: Hide content until authentication verified -->
+    <style>
+        body { visibility: hidden; }
+        body.authenticated { visibility: visible !important; }
+        .auth-loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #010131 0%, #121140 100%);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-family: 'Open Sans', Arial, sans-serif; z-index: 99999; visibility: visible !important;
+        }
+    </style>
+    
+    <!-- Pre-render Authentication - Runs IMMEDIATELY -->
+    <script>
+        document.write('<div class="auth-loading"><div style="text-align: center;"><div style="font-size: 2rem; margin-bottom: 1rem;">🏢</div><h2 style="margin-bottom: 0.5rem;">Verifying Access...</h2><p style="opacity: 0.8;">Loading VIFM Portal...</p></div></div>');
+        
+        // Execute pre-render security immediately
+        (async function() {
+            await window.VIFMRouteGuards.executePreRenderSecurity();
+        })();
+        
+        // CRITICAL: Check if we have the version parameter, if not redirect to add it
+        if (!window.location.search.includes('nocache=20251001v2')) {
+            const newUrl = window.location.pathname + '?nocache=20251001v2' + window.location.hash;
+            console.log('🔄 Forcing cache-free reload...');
+            window.location.replace(newUrl);
+        }
+        
+        // CRITICAL: Force remove any cached stats grid when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const statsGrid = document.getElementById('statsGrid');
+            if (statsGrid) {
+                console.log('🗑️ Removing cached stats grid');
+                statsGrid.remove();
+            }
+            // Also remove subtitle if it exists
+            const subtitle = document.getElementById('welcomeSubtitle');
+            if (subtitle) {
+                console.log('🗑️ Removing cached subtitle');
+                subtitle.remove();
+            }
+        });
+    </script>
+    
+    <!-- Google Fonts - Open Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* VIFM Brand Colors */
+            --vifm-primary: #010131;
+            --vifm-accent: #5391D5;
+            --vifm-dark: #111232;
+            --vifm-navy: #121140;
+            --vifm-off-white: #FEFFF9;
+            
+            /* Semantic Colors */
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --background: var(--vifm-off-white);
+            --surface: #ffffff;
+            --text: var(--vifm-dark);
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            
+            /* VIFM Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--vifm-primary) 0%, var(--vifm-navy) 100%);
+            --gradient-accent: linear-gradient(135deg, var(--vifm-accent) 0%, var(--vifm-primary) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(1, 1, 49, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .vifm-logo {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .logo-text-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text-main {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--vifm-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text-sub {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: var(--vifm-accent);
+            margin-top: -2px;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--vifm-primary);
+            font-size: 1rem;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            color: var(--vifm-accent);
+        }
+
+        .btn-logout {
+            padding: 0.5rem 1.25rem;
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(83, 145, 213, 0.3);
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .welcome-banner {
+            background: var(--gradient-accent);
+            color: white;
+            padding: 2.5rem 2rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(83, 145, 213, 0.2);
+            text-align: center;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+
+        /* Navigation Grid */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .nav-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(1, 1, 49, 0.1);
+            border: 1px solid var(--border);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-accent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .nav-card:not(.disabled):hover::before {
+            opacity: 0.05;
+        }
+
+        .nav-card:not(.disabled):hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(1, 1, 49, 0.2);
+            border-color: var(--vifm-accent);
+        }
+
+        .nav-card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 25px rgba(83, 145, 213, 0.3);
+        }
+
+        .nav-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--vifm-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-card-subtitle {
+            font-size: 0.875rem;
+            color: var(--vifm-accent);
+            font-weight: 500;
+        }
+
+        .nav-card-description {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .nav-card-action {
+            padding: 0.625rem 1.25rem;
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-card-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(83, 145, 213, 0.3);
+        }
+
+        .access-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: auto;
+        }
+
+        .badge-allowed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-restricted {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--gradient-primary);
+            color: var(--vifm-off-white);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .user-section {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .welcome-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="vifm-logo.png" alt="VIFM Logo" class="vifm-logo" 
+                     onerror="this.style.display='none'; document.querySelector('.logo-text-container').style.display='block';">
+                <div class="logo-text-container" style="display: none;">
+                    <div class="logo-text-main">VIFM</div>
+                    <div class="logo-text-sub">Virginia Institute</div>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-role" id="userRole">...</div>
+                </div>
+                <button onclick="logout()" class="btn-logout">Sign Out</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <div class="welcome-title" id="welcomeMessage">Welcome back!</div>
+        </div>
+
+        <!-- Navigation Grid -->
+        <div class="nav-grid" id="navGrid">
+            <!-- Navigation cards will be dynamically loaded based on user role -->
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 Virginia Institute of Finance and Management. All rights reserved.</p>
+    </div>
+
+    <script>
+        // ==================================================
+        // AUTHENTICATION & SESSION MANAGEMENT
+        // ==================================================
+        
+        // Use centralized Supabase configuration
+        let currentUser = null;
+        
+        // Check authentication with production security
+        async function checkAuth() {
+            try {
+                // Check for valid session
+                const sessionData = sessionStorage.getItem('vifm_session');
+                
+                if (!sessionData) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                const session = JSON.parse(sessionData);
+                
+                // Check if session is still valid
+                if (new Date(session.expires_at) <= new Date()) {
+                    sessionStorage.removeItem('vifm_session');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                // Set current user from session (compatible with dev bypass)
+                const profile = session.profile || session.user;
+                currentUser = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    full_name: profile.full_name || 'Admin User',
+                    role: profile.role || 'admin'
+                };
+                
+                // Clean up any old localStorage data
+                if (localStorage.getItem('session_token') || localStorage.getItem('user_data')) {
+                    localStorage.removeItem('session_token');
+                    localStorage.removeItem('user_data');
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Authentication check failed:', error);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+        
+        // Initialize Supabase using centralized configuration
+        function initializeSupabase() {
+            try {
+                return window.VIFMSupabase && window.VIFMSupabase.getSupabaseClient();
+            } catch (error) {
+                console.error('Error initializing Supabase:', error);
+                return false;
+            }
+        }
+        
+        // ==================================================
+        // USER INTERFACE FUNCTIONS
+        // ==================================================
+        
+        // Get fresh user data from Supabase Auth
+        async function getFreshUserData() {
+            try {
+                // Get fresh profile from Supabase Auth
+                const { user, profile } = await window.VIFMSupabase.Auth.getCurrentUser();
+                if (profile && profile.full_name && profile.role) {
+                    console.log('✅ User loaded from Supabase:', profile.full_name);
+                    return profile;
+                }
+                
+                console.error('❌ No valid user profile found');
+                return null;
+                
+            } catch (error) {
+                console.error('❌ Error getting user data:', error);
+                return null;
+            }
+        }
+        
+        // Initialize the application
+        async function initializeApp() {
+            try {
+                console.log('🔄 Initializing VIFM Dashboard...');
+                
+                // CRITICAL: Clear old session storage that might have stale data
+                sessionStorage.removeItem('current_user');
+                sessionStorage.removeItem('admin_session');
+                console.log('🧹 Cleared old session cache');
+                
+                // Get fresh user data from Supabase
+                currentUser = await getFreshUserData();
+                if (!currentUser) {
+                    console.error('❌ No valid user session found');
+                    console.log('Redirecting to login...');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                console.log('✅ User session loaded:', currentUser.full_name, '(' + currentUser.role + ')');
+                
+                // Initialize Supabase
+                if (!initializeSupabase()) {
+                    console.warn('⚠️ Failed to connect to database. Some features may not work.');
+                }
+                
+                // Load user interface with error handling
+                console.log('🔄 Loading user interface...');
+                loadUserInfo();
+                console.log('🔄 Loading navigation...');
+                loadNavigation();
+                
+                // Remove loading overlay and show content
+                console.log('🔄 Revealing dashboard...');
+                const loadingOverlay = document.querySelector('.auth-loading');
+                if (loadingOverlay) {
+                    loadingOverlay.remove();
+                }
+                document.body.style.visibility = 'visible';
+                
+                console.log('✅ Dashboard fully loaded for:', currentUser.full_name, '(' + currentUser.role + ')');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ App initialization failed:', error);
+                console.error('Error details:', error.message);
+                console.error('Error stack:', error.stack);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+        
+        // Load user information
+        function loadUserInfo() {
+            if (!currentUser) {
+                console.error('❌ Current user not loaded');
+                return;
+            }
+            
+            document.getElementById('userName').textContent = currentUser.full_name;
+            document.getElementById('userRole').textContent = getRoleDisplay(currentUser.role);
+            
+            // Personalized welcome message
+            const hour = new Date().getHours();
+            let greeting = 'Good evening';
+            if (hour < 12) greeting = 'Good morning';
+            else if (hour < 18) greeting = 'Good afternoon';
+            
+            document.getElementById('welcomeMessage').textContent = `${greeting}, ${currentUser.full_name}!`;
+        }
+        
+        // Get role display name
+        function getRoleDisplay(role) {
+            const roleNames = {
+                'consultant': 'Consultant',
+                'bd': 'Business Development Professional',
+                'admin': 'Administrator',
+                'marketing': 'Marketing Team'
+            };
+            return roleNames[role] || 'User';
+        }
+        
+        
+        // Load navigation based on role
+        function loadNavigation() {
+            const navGrid = document.getElementById('navGrid');
+            let navHTML = '';
+            
+            // Common modules with role-based access
+            const modules = [
+    {
+        id: 'consultant-opportunities',
+        title: 'Consultant Opportunities',
+        subtitle: 'Track training opportunities',
+        description: 'Manage your training leads, client information, and follow-up actions',
+        icon: '🎯',
+        url: 'phase1.html',
+        allowedRoles: ['consultant', 'bd', 'admin']
+    },
+    {
+        id: 'bd-module',
+        title: 'Business Development',
+        subtitle: 'Sales pipeline management',
+        description: 'Manage BD opportunities, pipeline stages, and revenue forecasting',
+        icon: '💼',
+        url: 'bd-module.html?v=20251001e',
+        allowedRoles: ['bd', 'admin']
+    },
+    {
+        id: 'user-management',
+        title: 'User Management',
+        subtitle: 'Manage employee accounts',
+        description: 'Create user accounts, reset passwords, and manage access permissions',
+        icon: '👥',
+        url: 'user-management.html',
+        allowedRoles: ['admin']
+    }
+];
+            
+            modules.forEach(module => {
+                const hasAccess = module.allowedRoles.includes(currentUser.role);
+                navHTML += `
+                    <div class="nav-card ${!hasAccess ? 'disabled' : ''}">
+                        <div class="nav-card-content">
+                            <div class="nav-card-header">
+                                <div class="nav-card-icon">${module.icon}</div>
+                                <div>
+                                    <div class="nav-card-title">${module.title}</div>
+                                    <div class="nav-card-subtitle">${module.subtitle}</div>
+                                </div>
+                                <span class="access-badge ${hasAccess ? 'badge-allowed' : 'badge-restricted'}">
+                                    ${hasAccess ? 'Access' : 'No Access'}
+                                </span>
+                            </div>
+                            <div class="nav-card-description">${module.description}</div>
+                            ${hasAccess ? `<a href="${module.url}" style="text-decoration: none;"><button class="nav-card-action">Open Module →</button></a>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            navGrid.innerHTML = navHTML;
+        }
+        
+        // Navigate to module
+        function navigateTo(url) {
+            console.log('🔄 Navigating to:', url);
+            console.log('Current user role:', currentUser?.role);
+            window.location.href = url;
+        }
+        
+        // Logout with production security
+        async function logout() {
+            if (confirm('Are you sure you want to sign out?')) {
+                try {
+                    // Clear session using centralized auth system
+                    if (window.VIFMSupabase && window.VIFMSupabase.Auth) {
+                        await window.VIFMSupabase.Auth.signOut();
+                    }
+                    
+                    // Clear session storage
+                    sessionStorage.removeItem('vifm_session');
+                    
+                    // Clear any remaining localStorage data
+                    localStorage.clear();
+                    
+                    // Redirect to login
+                    window.location.href = 'login.html';
+                    
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    // Still redirect even if there's an error
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+        
+        // ==================================================
+        // INITIALIZATION
+        // ==================================================
+        
+        window.onload = async function() {
+            // Authentication already verified by pre-render guards
+            await initializeApp();
+        };
+    </script>
+</body>
+</html>
