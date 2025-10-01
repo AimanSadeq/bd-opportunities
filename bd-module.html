@@ -206,10 +206,10 @@
             padding: 1.5rem;
         }
 
-        /* Pipeline Overview */
+        /* Pipeline Overview - Smaller KPIs */
         .pipeline-stages {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
             margin-bottom: 1rem;
             align-items: stretch;
         }
@@ -217,33 +217,32 @@
         .pipeline-stage {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 0.5rem 0.75rem;
-            border-radius: 8px;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
             flex: 1;
         }
         
         .pipeline-stage.closed-lost {
-            flex: 0.5;
-            opacity: 0.85;
-            font-size: 0.85em;
+            flex: 0.4;
+            opacity: 0.75;
         }
 
         .stage-title {
-            font-size: 0.7rem;
+            font-size: 0.625rem;
             font-weight: 600;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.15rem;
         }
 
         .stage-count {
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             font-weight: 700;
             margin-bottom: 0;
         }
         
         .pipeline-stage.closed-lost .stage-count {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
         }
 
         /* Dashboard Layout - Stacked: Form on top, List below */
@@ -268,32 +267,39 @@
             overflow: hidden;
         }
 
-        /* Form Styles */
+        /* Form Styles - Horizontal Layout */
         .form-container {
-            padding: 1.25rem;
+            /* No extra padding, handled by form-panel */
         }
 
         .panel-title {
-            font-size: 1.125rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.4rem;
             border-bottom: 2px solid var(--border);
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
         }
 
         .form-grid-3 {
             display: grid;
-            grid-template-columns: 1fr 1fr 0.9fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .form-grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
         }
 
         .form-group {
@@ -690,15 +696,15 @@
                 <div class="stage-title">Closed Won</div>
                 <div class="stage-count" id="wonCount">0</div>
             </div>
-            <div class="pipeline-stage">
+            <div class="pipeline-stage closed-lost">
                 <div class="stage-title">Closed Lost</div>
                 <div class="stage-count" id="lostCount">0</div>
             </div>
         </div>
 
         <div class="dashboard">
-            <!-- Left Panel - BD Opportunity Form -->
-            <div class="left-panel">
+            <!-- Form Panel - Horizontal BD Opportunity Form -->
+            <div class="form-panel">
                 <div class="form-container">
                     <h3 class="panel-title" id="formTitle">New BD Opportunity</h3>
                     
@@ -707,125 +713,115 @@
                     <form id="bdForm" onsubmit="submitBDOpportunity(event)">
                         <input type="hidden" id="editingBDId">
                         
-                        <!-- Source Information -->
-                        <div class="form-group">
-                            <label class="form-label">Source Opportunity</label>
-                            <select id="sourceOpportunityId" class="form-select">
-                                <option value="">Select source opportunity</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Course Title *</label>
-                            <input type="text" id="courseTitle" class="form-input" required 
-                                   placeholder="Enter course or training title">
-                        </div>
-                        
+                        <!-- Row 1: Basic Info -->
                         <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Course Title *</label>
+                                <input type="text" id="courseTitle" class="form-input" required 
+                                       placeholder="Enter course or training title">
+                            </div>
                             <div class="form-group">
                                 <label class="form-label">Client Name *</label>
                                 <input type="text" id="client" class="form-input" required 
                                        placeholder="Company or organization name">
                             </div>
-                            
                             <div class="form-group">
                                 <label class="form-label">Consultant</label>
                                 <input type="text" id="consultantName" class="form-input" 
                                        placeholder="Assigned consultant name">
                             </div>
+                            <div class="form-group">
+                                <label class="form-label">Source Opportunity</label>
+                                <select id="sourceOpportunityId" class="form-select">
+                                    <option value="">Select source opportunity</option>
+                                </select>
+                            </div>
                         </div>
                         
-                        <!-- Contact Information -->
-                        <div class="form-group">
-                            <label class="form-label">Primary Contact</label>
-                            <input type="text" id="primaryContact" class="form-input" 
-                                   placeholder="Contact person name">
-                        </div>
-                        
+                        <!-- Row 2: Contact Info -->
                         <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Primary Contact</label>
+                                <input type="text" id="primaryContact" class="form-input" 
+                                       placeholder="Contact person name">
+                            </div>
                             <div class="form-group">
                                 <label class="form-label">Contact Title</label>
                                 <input type="text" id="contactTitle" class="form-input" 
                                        placeholder="Job title or position">
                             </div>
-                            
                             <div class="form-group">
                                 <label class="form-label">Contact Email</label>
                                 <input type="email" id="contactEmail" class="form-input" 
                                        placeholder="email@company.com">
                             </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Contact Phone</label>
-                            <input type="tel" id="contactPhone" class="form-input" 
-                                   placeholder="+971 XX XXX XXXX">
-                        </div>
-                        
-                        <!-- Business Details -->
-                        <div class="form-grid">
                             <div class="form-group">
-                                <label class="form-label">Estimated Budget (AED)</label>
+                                <label class="form-label">Contact Phone</label>
+                                <input type="tel" id="contactPhone" class="form-input" 
+                                       placeholder="+971 XX XXX XXXX">
+                            </div>
+                        </div>
+                        
+                        <!-- Row 3: Business Details -->
+                        <div class="form-grid-5">
+                            <div class="form-group">
+                                <label class="form-label">Budget (AED)</label>
                                 <input type="number" id="estimatedBudget" class="form-input" 
                                        placeholder="0" min="0" step="100">
                             </div>
-                            
                             <div class="form-group">
                                 <label class="form-label">Probability (%)</label>
                                 <input type="number" id="probability" class="form-input" 
                                        value="25" min="0" max="100" step="5">
                             </div>
+                            <div class="form-group">
+                                <label class="form-label">Close Date</label>
+                                <input type="date" id="expectedCloseDate" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Pipeline Stage</label>
+                                <select id="pipelineStage" class="form-select">
+                                    <option value="qualified">Qualified</option>
+                                    <option value="proposal">Proposal</option>
+                                    <option value="negotiation">Negotiation</option>
+                                    <option value="closed-won">Closed Won</option>
+                                    <option value="closed-lost">Closed Lost</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Competitors</label>
+                                <input type="text" id="competitors" class="form-input" 
+                                       placeholder="Known competitors">
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label class="form-label">Expected Close Date</label>
-                            <input type="date" id="expectedCloseDate" class="form-input">
-                        </div>
-                        
-                        <!-- Additional Information -->
-                        <div class="form-group">
-                            <label class="form-label">Competitors</label>
-                            <input type="text" id="competitors" class="form-input" 
-                                   placeholder="Known competing organizations">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">BD Notes</label>
-                            <textarea id="bdNotes" class="form-textarea" rows="3" 
-                                      placeholder="Business development notes and observations"></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Next Actions</label>
-                            <textarea id="nextActions" class="form-textarea" rows="2" 
-                                      placeholder="Planned follow-up actions"></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Pipeline Stage</label>
-                            <select id="pipelineStage" class="form-select">
-                                <option value="qualified">Qualified</option>
-                                <option value="proposal">Proposal</option>
-                                <option value="negotiation">Negotiation</option>
-                                <option value="closed-won">Closed Won</option>
-                                <option value="closed-lost">Closed Lost</option>
-                            </select>
-                        </div>
-                        
-                        <div class="btn-group">
-                            <button type="submit" class="btn btn-primary btn-full">
-                                Save BD Opportunity
-                            </button>
-                            <button type="button" onclick="clearBDForm()" class="btn btn-secondary">
-                                Clear Form
-                            </button>
+                        <!-- Row 4: Notes -->
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">BD Notes</label>
+                                <textarea id="bdNotes" class="form-textarea" rows="2" 
+                                          placeholder="Business development notes and observations"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Next Actions</label>
+                                <textarea id="nextActions" class="form-textarea" rows="2" 
+                                          placeholder="Planned follow-up actions"></textarea>
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary" style="margin-bottom: 0.35rem;">
+                                    Save Opportunity
+                                </button>
+                                <button type="button" onclick="clearBDForm()" class="btn btn-secondary">
+                                    Clear Form
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
             
-            <!-- Right Panel - BD Opportunities List -->
-            <div class="right-panel">
+            <!-- List Panel - BD Opportunities List -->
+            <div class="list-panel">
                 <div class="search-controls">
                     <div class="search-grid">
                         <div class="form-group">
