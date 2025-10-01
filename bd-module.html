@@ -1294,7 +1294,7 @@
             consultantOpportunities.forEach(opp => {
                 const option = document.createElement('option');
                 option.value = opp.id;
-                option.textContent = `${opp.course_title} - ${opp.client}`;
+                option.textContent = `${opp.course_title} - ${opp.client_company}`;
                 dropdown.appendChild(option);
             });
         }
@@ -1432,8 +1432,8 @@
                             if (selectedOpp) {
                                 // Auto-populate form fields from consultant opportunity
                                 document.getElementById('courseTitle').value = selectedOpp.course_title || '';
-                                document.getElementById('client').value = selectedOpp.client || '';
-                                document.getElementById('consultantName').value = selectedOpp.consultant || '';
+                                document.getElementById('client').value = selectedOpp.client_company || '';
+                                document.getElementById('consultantName').value = selectedOpp.consultant_name || '';
                                 console.log('✅ Auto-populated form from source opportunity:', selectedOpp.course_title);
                             }
                         }
