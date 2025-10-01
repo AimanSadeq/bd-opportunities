@@ -1294,7 +1294,7 @@
             consultantOpportunities.forEach(opp => {
                 const option = document.createElement('option');
                 option.value = opp.id;
-                option.textContent = `${opp.course_title} - ${opp.client_company}`;
+                option.textContent = `${opp.course_title} - ${opp.client}`;
                 dropdown.appendChild(option);
             });
         }
