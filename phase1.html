@@ -1558,12 +1558,11 @@
                 setTodaysDate();
                 
                 // Auto-set consultant name from authenticated user
-                if (profile.role === 'consultant') {
-                    const consultantSelector = document.getElementById('consultantSelector');
-                    if (consultantSelector && profile.full_name) {
-                        consultantSelector.value = profile.full_name;
-                        localStorage.setItem('current_consultant', profile.full_name);
-                    }
+                const consultantSelector = document.getElementById('consultantSelector');
+                if (consultantSelector && profile.full_name) {
+                    consultantSelector.value = profile.full_name;
+                    localStorage.setItem('current_consultant', profile.full_name);
+                    debugLog('✅ Auto-selected consultant:', profile.full_name);
                 }
                 
                 // STEP 3: Initialize database connection  
