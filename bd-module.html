@@ -1436,10 +1436,14 @@
                             // Find the selected consultant opportunity
                             const selectedOpp = consultantOpportunities.find(opp => opp.id == selectedId);
                             if (selectedOpp) {
-                                // Auto-populate form fields from consultant opportunity
+                                // Auto-populate ALL form fields from consultant opportunity
                                 document.getElementById('courseTitle').value = selectedOpp.course_title || '';
                                 document.getElementById('client').value = selectedOpp.client_company || '';
                                 document.getElementById('consultantName').value = selectedOpp.consultant_name || '';
+                                document.getElementById('primaryContact').value = selectedOpp.client_contact_name || '';
+                                document.getElementById('contactEmail').value = selectedOpp.contact_email || '';
+                                document.getElementById('contactPhone').value = selectedOpp.contact_phone || '';
+                                
                                 console.log('✅ Auto-populated form from source opportunity:', selectedOpp.course_title);
                             }
                         }
