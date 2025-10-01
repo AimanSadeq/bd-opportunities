@@ -323,14 +323,21 @@
                 }
                 console.log('✅ Supabase client initialized');
                 
-                // Load admin session
-                currentAdmin = normalizeSession();
-                if (!currentAdmin || currentAdmin.role !== 'admin') {
+                // Get current user from Supabase
+                currentAdmin = await getCurrentUser();
+                if (!currentAdmin) {
+                    showMessage('error', 'Authentication required. Please log in.');
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    return;
+                }
+                
+                // Check if user is admin
+                if (currentAdmin.role !== 'admin') {
                     showMessage('error', 'Access denied. Admin privileges required.');
                     setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
                     return;
                 }
-                console.log('✅ Admin session verified:', currentAdmin.full_name);
+                console.log('✅ Admin verified:', currentAdmin.full_name);
                 
                 // Load users
                 await loadUsers();
@@ -352,32 +359,35 @@
             }
         }
         
-        // Normalize session (same as main menu)
-        function normalizeSession() {
+        // Get current user from Supabase (same as other pages)
+        async function getCurrentUser() {
             try {
-                const vifmSession = sessionStorage.getItem('vifm_session');
-                if (vifmSession) {
-                    const session = JSON.parse(vifmSession);
-                    const user = session.profile || session.user;
-                    if (user && user.full_name && user.role) return user;
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error || !user) {
+                    console.log('❌ No authenticated user found');
+                    return null;
                 }
                 
-                const currentUserData = sessionStorage.getItem('current_user');
-                if (currentUserData) {
-                    const user = JSON.parse(currentUserData);
-                    if (user && user.full_name && user.role) return user;
+                console.log('✅ Found authenticated user:', user.id);
+                
+                // Get user profile from database
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+                
+                if (profileError || !profile) {
+                    console.log('❌ No profile found for user');
+                    return null;
                 }
                 
-                const adminSession = sessionStorage.getItem('admin_session');
-                if (adminSession) {
-                    const session = JSON.parse(adminSession);
-                    const user = session.profile;
-                    if (user && user.full_name && user.role) return user;
-                }
+                console.log('✅ Found profile:', profile.full_name, profile.role);
+                return profile;
                 
-                return null;
             } catch (error) {
-                console.error('Error normalizing session:', error);
+                console.error('❌ Error getting current user:', error);
                 return null;
             }
         }
