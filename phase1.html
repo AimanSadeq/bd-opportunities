@@ -601,145 +601,152 @@
 
     <div class="container">
         <div class="dashboard">
-            <!-- Left Panel - Add/Edit Opportunity Form -->
-            <div class="left-panel">
+            <!-- Form Panel - Horizontal Form on Top -->
+            <div class="form-panel left-panel">
                 <div class="form-container">
                     <h3 class="panel-title" id="formTitle">New Opportunity Form</h3>
                     <div id="formMessage" class="hidden"></div>
-                    
-                    <!-- Debug Info -->
                     <div id="debugPanel" class="debug-panel hidden"></div>
                     
-                    <!-- Course Information Section -->
-                    <div class="form-section">
-                        <div class="section-title">
-                            📚 Course Information
+                    <!-- Row 1: Course & Client Info -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Course Title <span class="required">*</span></label>
+                            <input type="text" id="courseTitle" placeholder="Enter course title">
+                            <div class="error-text hidden" id="courseTitleError">Course title is required</div>
                         </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Course Title <span class="required">*</span></label>
-                                <input type="text" id="courseTitle" placeholder="Enter course title">
-                                <div class="error-text hidden" id="courseTitleError">Course title is required</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Course Date <span class="required">*</span></label>
-                                <input type="date" id="courseDate">
-                                <div class="error-text hidden" id="courseDateError">Course date is required</div>
-                            </div>
+                        <div class="form-group">
+                            <label>Course Date <span class="required">*</span></label>
+                            <input type="date" id="courseDate">
+                            <div class="error-text hidden" id="courseDateError">Course date is required</div>
                         </div>
                         <div class="form-group">
                             <label>Client <span class="required">*</span></label>
                             <input type="text" id="client" placeholder="Enter client name">
                             <div class="error-text hidden" id="clientError">Client is required</div>
                         </div>
-                    </div>
-
-                    <!-- Contact Information Section -->
-                    <div class="form-section">
-                        <div class="section-title">
-                            👤 Primary Contact Information
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Contact Name <span class="required">*</span></label>
-                                <input type="text" id="contactName" placeholder="Primary contact name">
-                                <div class="error-text hidden" id="contactNameError">Contact name is required</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Job Title <span class="required">*</span></label>
-                                <input type="text" id="contactTitle" placeholder="Job title">
-                                <div class="error-text hidden" id="contactTitleError">Job title is required</div>
-                            </div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Email Address</label>
-                                <input type="email" id="contactEmail" placeholder="email@company.com">
-                            </div>
-                            <div class="form-group">
-                                <label>Phone Number</label>
-                                <input type="tel" id="contactPhone" placeholder="+971-XX-XXX-XXXX">
-                            </div>
-                        </div>
                         <div class="form-group">
                             <label>City</label>
                             <input type="text" id="city" placeholder="City">
                         </div>
                     </div>
-
-                    <!-- Opportunity Details Section -->
-                    <div class="form-section">
-                        <div class="section-title">
-                            💼 Opportunity Details
-                        </div>
-                        <div class="info-message" style="margin-bottom: 0.75rem;">
-                            <strong>BD Handoff:</strong> Set status to "In Progress" or "Complete" for BD team to import this opportunity.
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Priority</label>
-                                <select id="priority">
-                                    <option value="medium">Medium</option>
-                                    <option value="low">Low</option>
-                                    <option value="high">High</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select id="status">
-                                    <option value="new">New (consultant working)</option>
-                                    <option value="in-progress">In Progress (ready for BD)</option>
-                                    <option value="complete">Complete (ready for BD)</option>
-                                </select>
-                            </div>
+                    
+                    <!-- Row 2: Contact Info -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Contact Name <span class="required">*</span></label>
+                            <input type="text" id="contactName" placeholder="Primary contact name">
+                            <div class="error-text hidden" id="contactNameError">Contact name is required</div>
                         </div>
                         <div class="form-group">
+                            <label>Job Title <span class="required">*</span></label>
+                            <input type="text" id="contactTitle" placeholder="Job title">
+                            <div class="error-text hidden" id="contactTitleError">Job title is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="contactEmail" placeholder="email@company.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="contactPhone" placeholder="+971-XX-XXX-XXXX">
+                        </div>
+                    </div>
+                    
+                    <!-- Row 3: Opportunity Details -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <select id="priority">
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="status">
+                                <option value="new">New (consultant working)</option>
+                                <option value="in-progress">In Progress (ready for BD)</option>
+                                <option value="complete">Complete (ready for BD)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <div class="info-message" style="margin-top: 1.5rem; font-size: 0.75rem;">
+                                <strong>BD Handoff:</strong> Set status to "In Progress" or "Complete" for BD team to import.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 4: Notes -->
+                    <div class="form-grid-2">
+                        <div class="form-group">
                             <label>Discussion / Notes</label>
-                            <textarea id="discussionNotes" rows="3" placeholder="Key points from discussion, specific needs identified..."></textarea>
+                            <textarea id="discussionNotes" rows="2" placeholder="Key points from discussion..."></textarea>
                         </div>
                         <div class="form-group">
                             <label>Consultant Action</label>
-                            <textarea id="consultantAction" rows="2" placeholder="Follow-up actions for consultant..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>BD Action</label>
-                            <textarea id="bdAction" rows="2" placeholder="Actions for business development team..."></textarea>
+                            <textarea id="consultantAction" rows="2" placeholder="Follow-up actions..."></textarea>
                         </div>
                     </div>
                     
-                    <div class="btn-group">
-                        <button onclick="submitOpportunity()" class="btn btn-primary btn-full" id="submitBtn">
-                            Submit Opportunity
-                        </button>
+                    <!-- Row 5: BD Action -->
+                    <div class="form-group full-width">
+                        <label>BD Action</label>
+                        <textarea id="bdAction" rows="2" placeholder="Actions for business development team..."></textarea>
                     </div>
                     
-                    <div class="btn-group">
-                        <button onclick="saveDraft()" class="btn btn-info btn-full">
-                            Save as Draft
-                        </button>
-                        <button onclick="resetForm()" class="btn btn-secondary btn-full">
-                            Clear Form
-                        </button>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button onclick="addTestOpportunity()" class="btn btn-warning btn-full">
-                            Add Test Data
-                        </button>
-                        <button onclick="toggleDebug()" class="btn btn-secondary btn-full">
-                            Toggle Debug Info
-                        </button>
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.75rem;">
+                        <button onclick="submitOpportunity()" class="btn btn-primary" id="submitBtn">Submit Opportunity</button>
+                        <button onclick="saveDraft()" class="btn btn-info">Save Draft</button>
+                        <button onclick="resetForm()" class="btn btn-secondary">Clear Form</button>
                     </div>
                     
                     <input type="hidden" id="editingId" value="">
                 </div>
             </div>
 
-            <!-- Right Panel - Opportunities Table -->
-            <div class="right-panel">
+            <!-- List Panel - Opportunities Table -->
+            <div class="list-panel right-panel">
                 <h3 class="panel-title">Opportunities Database</h3>
                 
-                <!-- Simple Table Container -->
+                <!-- Search and Filter Controls -->
+                <div class="search-controls">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 0.75rem;">Search Client</label>
+                        <input type="text" id="searchClient" placeholder="Search by client name..." style="font-size: 0.8rem;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 0.75rem;">Filter Status</label>
+                        <select id="filterStatus" style="font-size: 0.8rem;">
+                            <option value="">All statuses</option>
+                            <option value="new">New</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="complete">Complete</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 0.75rem;">Filter Priority</label>
+                        <select id="filterPriority" style="font-size: 0.8rem;">
+                            <option value="">All priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 0.75rem;">Filter Consultant</label>
+                        <select id="filterConsultant" style="font-size: 0.8rem;">
+                            <option value="">All consultants</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: end;">
+                        <button onclick="clearFilters()" class="btn btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.75rem;">Clear Filters</button>
+                    </div>
+                </div>
+                
+                <!-- Table Container -->
                 <div class="table-container">
                     <table id="opportunitiesTable">
                         <thead>
@@ -1409,6 +1416,14 @@
             document.querySelectorAll('.error-text').forEach(el => el.classList.add('hidden'));
             
             clearDebug();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchClient').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterPriority').value = '';
+            document.getElementById('filterConsultant').value = '';
+            loadOpportunities(); // Reload to show all opportunities
         }
 
         function setTodaysDate() {
