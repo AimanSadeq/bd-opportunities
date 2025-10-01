@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - VIFM Portal</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <script src="env.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Open Sans', Arial, sans-serif;
+            background: linear-gradient(135deg, #010131 0%, #121140 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #4F46E5;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #4338CA;
+        }
+        
+        .btn-secondary {
+            background: #1a1a3e;
+            color: white;
+            border: 1px solid #2a2a5e;
+        }
+        
+        .btn-secondary:hover {
+            background: #2a2a5e;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .back-btn {
+            color: #a0a0c0;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .back-btn:hover {
+            color: white;
+        }
+        
+        .card {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5e;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .users-table th {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid #2a2a5e;
+            font-weight: 600;
+            color: #a0a0c0;
+        }
+        
+        .users-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #2a2a5e;
+        }
+        
+        .users-table tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .role-admin {
+            background: rgba(239, 68, 68, 0.2);
+            color: #FCA5A5;
+        }
+        
+        .role-bd {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93C5FD;
+        }
+        
+        .role-consultant {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6EE7B7;
+        }
+        
+        .status-active {
+            color: #10B981;
+        }
+        
+        .status-inactive {
+            color: #EF4444;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5e;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #a0a0c0;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .close-btn:hover {
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #a0a0c0;
+            font-size: 0.875rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: #010131;
+            border: 1px solid #2a2a5e;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4F46E5;
+        }
+        
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .message.success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10B981;
+            color: #6EE7B7;
+        }
+        
+        .message.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #EF4444;
+            color: #FCA5A5;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #a0a0c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="vifm-main-menu.html" class="back-btn">← Back to Dashboard</a>
+        
+        <div class="header">
+            <h1>👥 User Management</h1>
+            <button class="btn btn-primary" onclick="openCreateModal()">+ Create User</button>
+        </div>
+        
+        <div id="messageArea"></div>
+        
+        <div class="card">
+            <div id="usersTable">
+                <div class="loading">Loading users...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create/Edit User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Create User</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="userForm" onsubmit="handleSubmit(event)">
+                <input type="hidden" id="userId" value="">
+                
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="fullName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Role *</label>
+                    <select id="role" required>
+                        <option value="consultant">Consultant</option>
+                        <option value="bd">BD Professional</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="passwordGroup">
+                    <label>Temporary Password *</label>
+                    <input type="password" id="password" minlength="6">
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let supabase = null;
+        let currentAdmin = null;
+        let users = [];
+        let editingUserId = null;
+        
+        // Initialize
+        async function init() {
+            try {
+                // Wait for VIFMSupabase
+                let attempts = 0;
+                while (!window.VIFMSupabase && attempts < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (!window.VIFMSupabase) {
+                    throw new Error('System not ready');
+                }
+                
+                supabase = window.VIFMSupabase.getSupabaseClient();
+                
+                // Get current user
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Get profile
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+                
+                if (!profile || profile.role !== 'admin') {
+                    showMessage('error', 'Admin access required');
+                    setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
+                    return;
+                }
+                
+                currentAdmin = profile;
+                await loadUsers();
+                
+            } catch (error) {
+                console.error('Init error:', error);
+                showMessage('error', 'Failed to load: ' + error.message);
+            }
+        }
+        
+        // Load all users
+        async function loadUsers() {
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                users = data || [];
+                renderUsers();
+                
+            } catch (error) {
+                console.error('Load users error:', error);
+                showMessage('error', 'Failed to load users');
+            }
+        }
+        
+        // Render users table
+        function renderUsers() {
+            const container = document.getElementById('usersTable');
+            
+            if (users.length === 0) {
+                container.innerHTML = '<div class="loading">No users found</div>';
+                return;
+            }
+            
+            const html = `
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr>
+                                <td>${escapeHtml(user.full_name)}</td>
+                                <td>${escapeHtml(user.email)}</td>
+                                <td><span class="role-badge role-${user.role}">${getRoleDisplay(user.role)}</span></td>
+                                <td>
+                                    ${user.email !== currentAdmin.email ? `
+                                        <button class="btn btn-sm btn-secondary" onclick="openEditModal('${user.user_id}')">Edit</button>
+                                        <button class="btn btn-sm btn-secondary" onclick="resetPassword('${escapeHtml(user.email)}', '${escapeHtml(user.full_name)}')">Reset Password</button>
+                                    ` : '<em style="color: #a0a0c0;">Current User</em>'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // Open create modal
+        function openCreateModal() {
+            editingUserId = null;
+            document.getElementById('modalTitle').textContent = 'Create User';
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('password').required = true;
+            document.getElementById('userModal').classList.add('show');
+        }
+        
+        // Open edit modal
+        function openEditModal(userId) {
+            const user = users.find(u => u.user_id === userId);
+            if (!user) return;
+            
+            editingUserId = userId;
+            document.getElementById('modalTitle').textContent = 'Edit User';
+            document.getElementById('userId').value = userId;
+            document.getElementById('fullName').value = user.full_name;
+            document.getElementById('email').value = user.email;
+            document.getElementById('role').value = user.role;
+            document.getElementById('passwordGroup').style.display = 'none';
+            document.getElementById('password').required = false;
+            document.getElementById('userModal').classList.add('show');
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('userModal').classList.remove('show');
+            document.getElementById('userForm').reset();
+            editingUserId = null;
+        }
+        
+        // Handle form submit
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const role = document.getElementById('role').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                if (editingUserId) {
+                    // Update existing user
+                    await updateUser(editingUserId, fullName, email, role);
+                } else {
+                    // Create new user
+                    await createUser(fullName, email, role, password);
+                }
+                
+                closeModal();
+                await loadUsers();
+                
+            } catch (error) {
+                console.error('Form submit error:', error);
+                showMessage('error', error.message);
+            }
+        }
+        
+        // Create new user
+        async function createUser(fullName, email, role, password) {
+            // Check if email already exists
+            const { data: existing } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('email', email)
+                .single();
+            
+            if (existing) {
+                throw new Error('Email already exists');
+            }
+            
+            // Create auth user
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        role: role
+                    }
+                }
+            });
+            
+            if (authError) throw authError;
+            
+            // Create profile
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .insert({
+                    user_id: authData.user.id,
+                    email: email,
+                    full_name: fullName,
+                    role: role
+                });
+            
+            if (profileError) throw profileError;
+            
+            showMessage('success', `User ${fullName} created successfully`);
+        }
+        
+        // Update user
+        async function updateUser(userId, fullName, email, role) {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    full_name: fullName,
+                    email: email,
+                    role: role
+                })
+                .eq('user_id', userId);
+            
+            if (error) throw error;
+            
+            showMessage('success', 'User updated successfully');
+        }
+        
+        // Reset password
+        async function resetPassword(email, name) {
+            if (!confirm(`Send password reset email to ${name} (${email})?`)) return;
+            
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password.html'
+                });
+                
+                if (error) throw error;
+                
+                showMessage('success', `Password reset email sent to ${email}`);
+                
+            } catch (error) {
+                console.error('Reset password error:', error);
+                showMessage('error', 'Failed to send reset email: ' + error.message);
+            }
+        }
+        
+        // Helper functions
+        function getRoleDisplay(role) {
+            const roles = {
+                'admin': 'Administrator',
+                'bd': 'BD Professional',
+                'consultant': 'Consultant'
+            };
+            return roles[role] || role;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showMessage(type, message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
+            
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+        
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
