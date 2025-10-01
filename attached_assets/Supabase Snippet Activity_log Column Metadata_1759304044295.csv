@@ -1,0 +1,8 @@
+table_schema,table_name,column_name,ordinal_position,data_type
+public,activity_log,id,1,uuid
+public,activity_log,user_id,2,uuid
+public,activity_log,action,3,text
+public,activity_log,entity_type,4,text
+public,activity_log,entity_id,5,uuid
+public,activity_log,details,6,jsonb
+public,activity_log,created_at,7,timestamp with time zone

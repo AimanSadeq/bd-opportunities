@@ -1,0 +1,6 @@
+table_schema,table_name,column_name,ordinal_position,data_type
+public,user_sessions,id,1,uuid
+public,user_sessions,user_id,2,uuid
+public,user_sessions,token,3,text
+public,user_sessions,expires_at,4,timestamp with time zone
+public,user_sessions,created_at,5,timestamp with time zone

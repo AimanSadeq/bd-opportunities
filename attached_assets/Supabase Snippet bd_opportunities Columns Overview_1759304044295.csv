@@ -1,0 +1,24 @@
+table_schema,table_name,column_name,ordinal_position,data_type
+public,bd_opportunities,id,1,uuid
+public,bd_opportunities,source_opportunity_id,2,uuid
+public,bd_opportunities,course_title,3,text
+public,bd_opportunities,client,4,text
+public,bd_opportunities,primary_contact,5,text
+public,bd_opportunities,contact_title,6,text
+public,bd_opportunities,contact_email,7,text
+public,bd_opportunities,contact_phone,8,text
+public,bd_opportunities,estimated_budget,9,numeric
+public,bd_opportunities,pipeline_stage,10,text
+public,bd_opportunities,probability,11,integer
+public,bd_opportunities,expected_close_date,12,date
+public,bd_opportunities,competitors,13,text
+public,bd_opportunities,bd_notes,14,text
+public,bd_opportunities,next_actions,15,text
+public,bd_opportunities,bd_rep,16,text
+public,bd_opportunities,created_at,17,timestamp with time zone
+public,bd_opportunities,updated_at,18,timestamp with time zone
+public,bd_opportunities,consultant_name,19,text
+public,bd_opportunities,user_id,20,uuid
+public,bd_opportunities,assigned_to,21,uuid
+public,bd_opportunities,bd_prof,22,text
+public,bd_opportunities,created_by,23,uuid

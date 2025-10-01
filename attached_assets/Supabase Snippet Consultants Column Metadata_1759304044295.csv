@@ -1,0 +1,6 @@
+table_schema,table_name,column_name,ordinal_position,data_type
+public,consultants,id,1,uuid
+public,consultants,name,2,character varying
+public,consultants,email,3,character varying
+public,consultants,active,4,boolean
+public,consultants,created_at,5,timestamp with time zone

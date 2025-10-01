@@ -1,0 +1,7 @@
+table_schema,table_name,column_name,ordinal_position,data_type
+public,profiles,id,1,uuid
+public,profiles,email,2,text
+public,profiles,full_name,3,text
+public,profiles,role,4,text
+public,profiles,created_at,5,timestamp with time zone
+public,profiles,updated_at,6,timestamp with time zone

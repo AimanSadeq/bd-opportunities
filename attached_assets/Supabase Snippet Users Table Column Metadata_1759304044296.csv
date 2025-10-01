@@ -1,0 +1,42 @@
+table_schema,table_name,column_name,ordinal_position,data_type
+auth,users,instance_id,1,uuid
+auth,users,id,2,uuid
+auth,users,aud,3,character varying
+auth,users,role,4,character varying
+auth,users,email,5,character varying
+auth,users,encrypted_password,6,character varying
+auth,users,email_confirmed_at,7,timestamp with time zone
+auth,users,invited_at,8,timestamp with time zone
+auth,users,confirmation_token,9,character varying
+auth,users,confirmation_sent_at,10,timestamp with time zone
+auth,users,recovery_token,11,character varying
+auth,users,recovery_sent_at,12,timestamp with time zone
+auth,users,email_change_token_new,13,character varying
+auth,users,email_change,14,character varying
+auth,users,email_change_sent_at,15,timestamp with time zone
+auth,users,last_sign_in_at,16,timestamp with time zone
+auth,users,raw_app_meta_data,17,jsonb
+auth,users,raw_user_meta_data,18,jsonb
+auth,users,is_super_admin,19,boolean
+auth,users,created_at,20,timestamp with time zone
+auth,users,updated_at,21,timestamp with time zone
+auth,users,phone,22,text
+auth,users,phone_confirmed_at,23,timestamp with time zone
+auth,users,phone_change,24,text
+auth,users,phone_change_token,25,character varying
+auth,users,phone_change_sent_at,26,timestamp with time zone
+auth,users,confirmed_at,27,timestamp with time zone
+auth,users,email_change_token_current,28,character varying
+auth,users,email_change_confirm_status,29,smallint
+auth,users,banned_until,30,timestamp with time zone
+auth,users,reauthentication_token,31,character varying
+auth,users,reauthentication_sent_at,32,timestamp with time zone
+auth,users,is_sso_user,33,boolean
+auth,users,deleted_at,34,timestamp with time zone
+auth,users,is_anonymous,35,boolean
+public,users,id,1,uuid
+public,users,email,2,text
+public,users,full_name,3,text
+public,users,role,4,text
+public,users,created_at,5,timestamp without time zone
+public,users,updated_at,6,timestamp without time zone
