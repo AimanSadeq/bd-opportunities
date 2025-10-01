@@ -300,7 +300,7 @@
         // Initialize
         async function init() {
             try {
-                console.log('🔄 Initializing User Management...');
+                console.log('🔄 USER MANAGEMENT: Starting initialization...');
                 
                 // Wait for VIFMSupabase to be available
                 let attempts = 0;
@@ -310,35 +310,51 @@
                 }
                 
                 if (!window.VIFMSupabase) {
+                    console.error('❌ USER MANAGEMENT: VIFMSupabase not available');
                     throw new Error('Supabase client failed to initialize');
                 }
+                console.log('✅ USER MANAGEMENT: VIFMSupabase available');
                 
                 // Initialize Supabase using the correct function
                 supabase = window.VIFMSupabase.getSupabaseClient();
                 if (!supabase) {
+                    console.error('❌ USER MANAGEMENT: getSupabaseClient returned null');
                     throw new Error('Supabase client not available');
                 }
-                console.log('✅ Supabase client initialized');
+                console.log('✅ USER MANAGEMENT: Supabase client initialized');
                 
                 // Get current user from Supabase
+                console.log('🔍 USER MANAGEMENT: Getting current user...');
                 currentAdmin = await getCurrentUser();
+                console.log('🔍 USER MANAGEMENT: getCurrentUser returned:', currentAdmin ? 'user found' : 'null');
+                
                 if (!currentAdmin) {
+                    console.error('❌ USER MANAGEMENT: No user found, redirecting to login');
                     showMessage('error', 'Authentication required. Please log in.');
-                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    setTimeout(() => window.location.href = 'login.html', 3000);
+                    const loadingOverlay = document.querySelector('.auth-loading');
+                    if (loadingOverlay) loadingOverlay.remove();
+                    document.body.style.visibility = 'visible';
                     return;
                 }
                 
                 // Check if user is admin
+                console.log('🔍 USER MANAGEMENT: User role:', currentAdmin.role);
                 if (currentAdmin.role !== 'admin') {
+                    console.error('❌ USER MANAGEMENT: User is not admin, redirecting');
                     showMessage('error', 'Access denied. Admin privileges required.');
-                    setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
+                    setTimeout(() => window.location.href = 'vifm-main-menu.html', 3000);
+                    const loadingOverlay = document.querySelector('.auth-loading');
+                    if (loadingOverlay) loadingOverlay.remove();
+                    document.body.style.visibility = 'visible';
                     return;
                 }
-                console.log('✅ Admin verified:', currentAdmin.full_name);
+                console.log('✅ USER MANAGEMENT: Admin verified:', currentAdmin.full_name);
                 
                 // Load users
+                console.log('🔍 USER MANAGEMENT: Loading users...');
                 await loadUsers();
-                console.log('✅ User Management loaded');
+                console.log('✅ USER MANAGEMENT: User Management fully loaded');
                 
                 // Show page
                 const loadingOverlay = document.querySelector('.auth-loading');
@@ -346,7 +362,7 @@
                 document.body.style.visibility = 'visible';
                 
             } catch (error) {
-                console.error('❌ Initialization error:', error);
+                console.error('❌ USER MANAGEMENT: Initialization error:', error);
                 showMessage('error', 'Failed to initialize user management: ' + error.message);
                 
                 // Show page anyway to display error
