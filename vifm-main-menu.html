@@ -545,47 +545,21 @@
         // USER INTERFACE FUNCTIONS
         // ==================================================
         
-        // Normalize and load session data
-        function normalizeSession() {
+        // Get fresh user data from Supabase Auth
+        async function getFreshUserData() {
             try {
-                // Priority 1: Standard VIFM session
-                const vifmSession = sessionStorage.getItem('vifm_session');
-                if (vifmSession) {
-                    const session = JSON.parse(vifmSession);
-                    const user = session.profile || session.user;
-                    if (user && user.full_name && user.role) {
-                        console.log('✅ User loaded from VIFM session:', user.full_name);
-                        return user;
-                    }
+                // Get fresh profile from Supabase Auth
+                const { user, profile } = await window.VIFMSupabase.Auth.getCurrentUser();
+                if (profile && profile.full_name && profile.role) {
+                    console.log('✅ User loaded from Supabase:', profile.full_name);
+                    return profile;
                 }
                 
-                // Priority 2: Quick admin login session
-                const currentUserData = sessionStorage.getItem('current_user');
-                if (currentUserData) {
-                    const user = JSON.parse(currentUserData);
-                    if (user && user.full_name && user.role) {
-                        console.log('✅ User loaded from current_user session:', user.full_name);
-                        return user;
-                    }
-                }
-                
-                // Priority 3: Admin session fallback
-                const adminSession = sessionStorage.getItem('admin_session');
-                if (adminSession) {
-                    const session = JSON.parse(adminSession);
-                    const user = session.profile;
-                    if (user && user.full_name && user.role) {
-                        console.log('✅ User loaded from admin session:', user.full_name);
-                        return user;
-                    }
-                }
-                
-                // No valid session found
-                console.error('❌ No valid user session found');
+                console.error('❌ No valid user profile found');
                 return null;
                 
             } catch (error) {
-                console.error('❌ Error normalizing session:', error);
+                console.error('❌ Error getting user data:', error);
                 return null;
             }
         }
@@ -595,15 +569,10 @@
             try {
                 console.log('🔄 Initializing VIFM Dashboard...');
                 
-                // Normalize and load user session
-                currentUser = normalizeSession();
+                // Get fresh user data from Supabase
+                currentUser = await getFreshUserData();
                 if (!currentUser) {
                     console.error('❌ No valid user session found');
-                    console.log('Available sessions:', {
-                        vifm_session: sessionStorage.getItem('vifm_session') ? 'EXISTS' : 'NULL',
-                        current_user: sessionStorage.getItem('current_user') ? 'EXISTS' : 'NULL', 
-                        admin_session: sessionStorage.getItem('admin_session') ? 'EXISTS' : 'NULL'
-                    });
                     console.log('Redirecting to login...');
                     window.location.href = 'login.html';
                     return false;
