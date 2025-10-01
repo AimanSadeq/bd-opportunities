@@ -887,6 +887,7 @@
                             <tr>
                                 <th>Actions</th>
                                 <th>Client</th>
+                                <th>City</th>
                                 <th>Course</th>
                                 <th>Consultant</th>
                                 <th>Contact</th>
@@ -901,7 +902,7 @@
                         </thead>
                         <tbody id="bdTableBody">
                             <tr>
-                                <td colspan="12" class="no-data">
+                                <td colspan="13" class="no-data">
                                     No BD opportunities found. Add your first opportunity using the form.
                                 </td>
                             </tr>
@@ -1217,7 +1218,7 @@
             if (!opportunities || opportunities.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="12" class="no-data">
+                        <td colspan="13" class="no-data">
                             No BD opportunities found. Add your first opportunity using the form.
                         </td>
                     </tr>
@@ -1232,6 +1233,7 @@
                         <button onclick="deleteBDOpportunity('${opp.id}')" class="btn-danger">Delete</button>
                     </td>
                     <td class="client-cell">${escapeHtml(opp.client)}</td>
+                    <td>${escapeHtml(opp.city || '-')}</td>
                     <td>${escapeHtml(opp.course_title)}</td>
                     <td>${escapeHtml(opp.consultant_name || '-')}</td>
                     <td>${escapeHtml(opp.primary_contact || '-')}</td>
@@ -1398,7 +1400,7 @@
                 return;
             }
             
-            const headers = ['Client', 'Course Title', 'Consultant', 'Primary Contact', 'Contact Title', 'Email', 'Phone', 
+            const headers = ['Client', 'City', 'Course Title', 'Consultant', 'Primary Contact', 'Contact Title', 'Email', 'Phone', 
                            'Estimated Budget', 'Pipeline Stage', 'Probability', 'Expected Close Date', 
                            'Competitors', 'BD Notes', 'Next Actions', 'BD Prof', 'Created', 'Updated'];
             
@@ -1406,6 +1408,7 @@
                 headers.join(','),
                 ...bdOpportunities.map(opp => [
                     `"${opp.client}"`,
+                    `"${opp.city || ''}"`,
                     `"${opp.course_title}"`,
                     `"${opp.consultant_name || ''}"`,
                     `"${opp.primary_contact || ''}"`,

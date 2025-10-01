@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS bd_opportunities (
     source_opportunity_id UUID REFERENCES opportunities(id),
     course_title TEXT NOT NULL,
     client TEXT NOT NULL,
+    city TEXT,
     consultant_name TEXT,
     primary_contact TEXT,
     contact_title TEXT,
