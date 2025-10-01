@@ -949,6 +949,7 @@
                 // Update display
                 displayBDTable(bdOpportunities);
                 updatePipelineStats();
+                populateFilterDropdowns();
                 
                 // Backup to localStorage
                 localStorage.setItem('bd_opportunities_backup', JSON.stringify(bdOpportunities));
@@ -1043,7 +1044,7 @@
                     showMessage('success', 'BD opportunity created successfully');
                 }
 
-                // Reload data and clear form
+                // Reload data, repopulate filters, and clear form
                 await loadBDOpportunities();
                 clearBDForm();
 
@@ -1133,6 +1134,27 @@
             document.getElementById('lostCount').textContent = stats.lost;
         }
 
+        // Populate filter dropdowns with unique values from BD opportunities
+        function populateFilterDropdowns() {
+            // Extract unique clients
+            const uniqueClients = [...new Set(bdOpportunities.map(o => o.client).filter(c => c))].sort();
+            const clientSelect = document.getElementById('searchClient');
+            clientSelect.innerHTML = '<option value="">All clients</option>' + 
+                uniqueClients.map(client => `<option value="${escapeHtml(client)}">${escapeHtml(client)}</option>`).join('');
+            
+            // Extract unique consultants
+            const uniqueConsultants = [...new Set(bdOpportunities.map(o => o.consultant_name).filter(c => c))].sort();
+            const consultantSelect = document.getElementById('filterConsultant');
+            consultantSelect.innerHTML = '<option value="">All consultants</option>' + 
+                uniqueConsultants.map(consultant => `<option value="${escapeHtml(consultant)}">${escapeHtml(consultant)}</option>`).join('');
+            
+            // Extract unique BD professionals
+            const uniqueBDProfs = [...new Set(bdOpportunities.map(o => o.bd_prof).filter(b => b))].sort();
+            const bdProfSelect = document.getElementById('filterBDProf');
+            bdProfSelect.innerHTML = '<option value="">All BD professionals</option>' + 
+                uniqueBDProfs.map(prof => `<option value="${escapeHtml(prof)}">${escapeHtml(prof)}</option>`).join('');
+        }
+
         // Clear BD form
         function clearBDForm() {
             document.getElementById('bdForm').reset();
@@ -1183,6 +1205,7 @@
                 
                 displayBDTable(bdOpportunities);
                 updatePipelineStats();
+                populateFilterDropdowns();
                 showMessage('success', 'BD opportunity deleted');
                 
             } catch (error) {
@@ -1193,16 +1216,16 @@
 
         // Filter BD table
         function filterBDTable() {
-            const searchClient = document.getElementById('searchClient').value.toLowerCase();
-            const filterConsultant = document.getElementById('filterConsultant').value.toLowerCase();
+            const searchClient = document.getElementById('searchClient').value;
+            const filterConsultant = document.getElementById('filterConsultant').value;
             const filterStage = document.getElementById('filterStage').value;
-            const filterBDProf = document.getElementById('filterBDProf').value.toLowerCase();
+            const filterBDProf = document.getElementById('filterBDProf').value;
             
             const filtered = bdOpportunities.filter(opp => {
-                const matchClient = !searchClient || opp.client.toLowerCase().includes(searchClient);
-                const matchConsultant = !filterConsultant || (opp.consultant_name && opp.consultant_name.toLowerCase().includes(filterConsultant));
+                const matchClient = !searchClient || opp.client === searchClient;
+                const matchConsultant = !filterConsultant || opp.consultant_name === filterConsultant;
                 const matchStage = !filterStage || opp.pipeline_stage === filterStage;
-                const matchBDProf = !filterBDProf || (opp.bd_prof && opp.bd_prof.toLowerCase().includes(filterBDProf));
+                const matchBDProf = !filterBDProf || opp.bd_prof === filterBDProf;
                 
                 return matchClient && matchConsultant && matchStage && matchBDProf;
             });
@@ -1494,6 +1517,7 @@
                 bdOpportunities = JSON.parse(bdBackup);
                 displayBDTable(bdOpportunities);
                 updatePipelineStats();
+                populateFilterDropdowns();
             }
             
             const consultantBackup = localStorage.getItem('training_opportunities_backup');
