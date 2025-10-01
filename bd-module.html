@@ -1089,6 +1089,7 @@
                 source_opportunity_id: document.getElementById('sourceOpportunityId').value || null,
                 course_title: document.getElementById('courseTitle').value,
                 client: document.getElementById('client').value,
+                city: document.getElementById('city').value || null,
                 consultant_name: document.getElementById('consultantName').value || null,
                 primary_contact: document.getElementById('primaryContact').value || null,
                 contact_title: document.getElementById('contactTitle').value || null,
@@ -1307,6 +1308,7 @@
             document.getElementById('sourceOpportunityId').value = opp.source_opportunity_id || '';
             document.getElementById('courseTitle').value = opp.course_title || '';
             document.getElementById('client').value = opp.client || '';
+            document.getElementById('city').value = opp.city || '';
             document.getElementById('consultantName').value = opp.consultant_name || '';
             document.getElementById('primaryContact').value = opp.primary_contact || '';
             document.getElementById('contactTitle').value = opp.contact_title || '';
