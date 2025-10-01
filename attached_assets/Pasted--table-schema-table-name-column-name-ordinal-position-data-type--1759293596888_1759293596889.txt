@@ -1,0 +1,22 @@
+| table_schema | table_name    | column_name       | ordinal_position | data_type                |
+| ------------ | ------------- | ----------------- | ---------------- | ------------------------ |
+| public       | opportunities | id                | 1                | uuid                     |
+| public       | opportunities | course_title      | 2                | character varying        |
+| public       | opportunities | client_company    | 3                | character varying        |
+| public       | opportunities | course_date       | 4                | date                     |
+| public       | opportunities | delegate_name     | 5                | character varying        |
+| public       | opportunities | delegate_title    | 6                | character varying        |
+| public       | opportunities | city              | 7                | character varying        |
+| public       | opportunities | delegate_email    | 8                | character varying        |
+| public       | opportunities | phone_number      | 9                | character varying        |
+| public       | opportunities | priority          | 10               | character varying        |
+| public       | opportunities | status            | 11               | character varying        |
+| public       | opportunities | discussion_notes  | 12               | text                     |
+| public       | opportunities | consultant_action | 13               | text                     |
+| public       | opportunities | bd_action         | 14               | text                     |
+| public       | opportunities | consultant_name   | 15               | character varying        |
+| public       | opportunities | created_at        | 16               | timestamp with time zone |
+| public       | opportunities | updated_at        | 17               | timestamp with time zone |
+| public       | opportunities | created_by        | 18               | uuid                     |
+| public       | opportunities | updated_by        | 19               | uuid                     |
+| public       | opportunities | user_id           | 20               | uuid                     |

@@ -1436,20 +1436,18 @@
                             // Find the selected consultant opportunity
                             const selectedOpp = consultantOpportunities.find(opp => opp.id == selectedId);
                             if (selectedOpp) {
-                                // Auto-populate ALL available form fields from consultant opportunity
+                                // Auto-populate ALL form fields from consultant opportunity (using correct field mapping)
                                 document.getElementById('courseTitle').value = selectedOpp.course_title || '';
                                 document.getElementById('client').value = selectedOpp.client_company || '';
                                 document.getElementById('consultantName').value = selectedOpp.consultant_name || '';
-                                document.getElementById('primaryContact').value = selectedOpp.client_contact_name || '';
-                                document.getElementById('contactEmail').value = selectedOpp.contact_email || '';
-                                document.getElementById('contactPhone').value = selectedOpp.contact_phone || '';
+                                document.getElementById('primaryContact').value = selectedOpp.delegate_name || '';
+                                document.getElementById('contactTitle').value = selectedOpp.delegate_title || '';
+                                document.getElementById('contactEmail').value = selectedOpp.delegate_email || '';
+                                document.getElementById('contactPhone').value = selectedOpp.phone_number || '';
+                                document.getElementById('bdNotes').value = selectedOpp.discussion_notes || '';
+                                document.getElementById('nextActions').value = selectedOpp.bd_action || '';
                                 
-                                // Populate BD Notes from consultant opportunity notes
-                                if (selectedOpp.notes) {
-                                    document.getElementById('bdNotes').value = 'Source Opportunity Notes: ' + selectedOpp.notes;
-                                }
-                                
-                                console.log('✅ Auto-populated all available fields from source opportunity:', selectedOpp.course_title);
+                                console.log('✅ Auto-populated all fields from source opportunity:', selectedOpp.course_title);
                             }
                         }
                     });
