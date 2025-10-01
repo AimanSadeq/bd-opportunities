@@ -1024,12 +1024,23 @@
                     throw new Error('Supabase not initialized');
                 }
                 
+                // Get current user to filter their opportunities only
+                const { user } = await window.VIFMSupabase.Auth.getCurrentUser();
+                if (!user) {
+                    throw new Error('User not authenticated');
+                }
+                
+                // CRITICAL FIX: Only load opportunities created by THIS consultant
                 const data = await window.VIFMSupabase.Database.select('opportunities', {
+                    filters: { created_by: user.id },
                     orderBy: { column: 'created_at', ascending: false }
                 });
                 
                 opportunities = data || [];
-                debugLog('✅ Successfully loaded opportunities', { count: opportunities.length });
+                debugLog('✅ Successfully loaded opportunities for consultant', { 
+                    userId: user.id,
+                    count: opportunities.length 
+                });
                 
                 // Save to localStorage as backup
                 localStorage.setItem('training_opportunities_backup', JSON.stringify(opportunities));
