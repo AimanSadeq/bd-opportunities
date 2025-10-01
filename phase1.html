@@ -1228,12 +1228,21 @@
                                         'Authorization': `Bearer ${session.access_token}`
                                     },
                                     body: JSON.stringify({
-                                        date: savedOpp.course_date,
-                                        company: savedOpp.client_company,
-                                        contact: savedOpp.delegate_name,
                                         module: 'Consultant Opportunities',
-                                        notes: savedOpp.discussion_notes,
-                                        next_actions: savedOpp.consultant_action
+                                        course_title: savedOpp.course_title,
+                                        course_date: savedOpp.course_date,
+                                        client_company: savedOpp.client_company,
+                                        delegate_name: savedOpp.delegate_name,
+                                        delegate_title: savedOpp.delegate_title,
+                                        delegate_email: savedOpp.delegate_email,
+                                        phone_number: savedOpp.phone_number,
+                                        city: savedOpp.city,
+                                        priority: savedOpp.priority,
+                                        status: savedOpp.status,
+                                        discussion_notes: savedOpp.discussion_notes,
+                                        consultant_action: savedOpp.consultant_action,
+                                        bd_action: savedOpp.bd_action,
+                                        consultant_name: savedOpp.consultant_name
                                     })
                                 }).catch(err => debugLog('Email queued'));
                                 debugLog('📧 Email notification queued');
