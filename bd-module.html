@@ -1091,8 +1091,8 @@
                 probability: parseInt(document.getElementById('probability').value) || 25,
                 expected_close_date: document.getElementById('expectedCloseDate').value || null,
                 competitors: document.getElementById('competitors').value || null,
-                bd_action: document.getElementById('bdNotes').value || null,
-                consultant_action: document.getElementById('nextActions').value || null,
+                bd_notes: document.getElementById('bdNotes').value || null,
+                next_actions: document.getElementById('nextActions').value || null,
                 bd_prof: document.getElementById('bdSelector').value || null
             };
 
@@ -1199,8 +1199,8 @@
                     <td>${opp.probability || 0}%</td>
                     <td>${formatDate(opp.expected_close_date)}</td>
                     <td>${escapeHtml(opp.bd_prof || '-')}</td>
-                    <td style="max-width: 200px; font-size: 0.7rem; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">${opp.bd_action ? escapeHtml(opp.bd_action) : '-'}</td>
-                    <td style="max-width: 200px; font-size: 0.7rem; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">${opp.consultant_action ? escapeHtml(opp.consultant_action) : '-'}</td>
+                    <td style="max-width: 200px; font-size: 0.7rem; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">${opp.bd_notes ? escapeHtml(opp.bd_notes) : '-'}</td>
+                    <td style="max-width: 200px; font-size: 0.7rem; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">${opp.next_actions ? escapeHtml(opp.next_actions) : '-'}</td>
                 </tr>
             `).join('');
         }
@@ -1273,8 +1273,8 @@
             document.getElementById('probability').value = opp.probability || 25;
             document.getElementById('expectedCloseDate').value = opp.expected_close_date || '';
             document.getElementById('competitors').value = opp.competitors || '';
-            document.getElementById('bdNotes').value = opp.bd_action || '';
-            document.getElementById('nextActions').value = opp.consultant_action || '';
+            document.getElementById('bdNotes').value = opp.bd_notes || '';
+            document.getElementById('nextActions').value = opp.next_actions || '';
             
             showMessage('info', 'Editing BD opportunity');
         }
