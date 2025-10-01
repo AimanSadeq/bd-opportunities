@@ -1217,10 +1217,14 @@
                             '✅ Draft saved to database!' : 
                             '✅ Opportunity submitted successfully to database!');
                         
-                        // Send email notification to akayed@viftraining.com
+                        // Send email notification to asadeq@viftraining.com
                         try {
                             const session = await window.VIFMSupabase.Auth.getSession();
-                            if (session?.access_token) {
+                            debugLog('📧 Session retrieved:', session ? 'Found' : 'Not found');
+                            
+                            if (session && session.access_token) {
+                                debugLog('📧 Sending email notification...');
+                                
                                 fetch('/api/notify-activity', {
                                     method: 'POST',
                                     headers: { 
@@ -1235,11 +1239,17 @@
                                         notes: savedOpp.discussion_notes,
                                         next_actions: savedOpp.consultant_action
                                     })
-                                }).catch(err => debugLog('Email queued'));
-                                debugLog('📧 Email notification queued');
+                                }).then(async response => {
+                                    const result = await response.json();
+                                    debugLog('📧 Server response:', result);
+                                }).catch(err => {
+                                    debugLog('❌ Email notification error:', err);
+                                });
+                            } else {
+                                debugLog('⚠️ No session or access token available');
                             }
                         } catch (emailError) {
-                            debugLog('⚠️ Email notification skipped:', emailError);
+                            debugLog('❌ Email notification exception:', emailError);
                         }
                     }
                     
