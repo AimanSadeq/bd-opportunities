@@ -6,7 +6,8 @@ The VIFM (Virginia Institute of Finance and Management) Portal is a role-based b
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+- **Communication Language**: Always respond in English
+- **Communication Style**: Simple, everyday language
 
 ## Production Upgrade Status
 
