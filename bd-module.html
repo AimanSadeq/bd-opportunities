@@ -238,7 +238,7 @@
         /* Dashboard Layout */
         .dashboard {
             display: grid;
-            grid-template-columns: 400px 1fr;
+            grid-template-columns: 480px 1fr;
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -247,7 +247,8 @@
             background: var(--surface);
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
+            overflow: auto;
+            max-height: calc(100vh - 250px);
         }
 
         .right-panel {
@@ -259,7 +260,7 @@
 
         /* Form Styles */
         .form-container {
-            padding: 1.5rem;
+            padding: 1.25rem;
         }
 
         .panel-title {
@@ -280,7 +281,7 @@
 
         .form-grid-3 {
             display: grid;
-            grid-template-columns: 0.8fr 1.1fr 1fr;
+            grid-template-columns: 1fr 1fr 0.9fr;
             gap: 1rem;
             margin-bottom: 1rem;
         }
