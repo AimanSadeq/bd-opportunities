@@ -1143,31 +1143,16 @@
                                     'Authorization': `Bearer ${session.access_token}`
                                 },
                                 body: JSON.stringify({
+                                    date: result.tentative_date,
+                                    company: result.client,
+                                    contact: result.primary_contact,
                                     module: 'Business Development',
-                                    source_opportunity_id: result.source_opportunity_id,
-                                    course_title: result.course_title,
-                                    client: result.client,
-                                    consultant_name: result.consultant_name,
-                                    primary_contact: result.primary_contact,
-                                    contact_title: result.contact_title,
-                                    contact_email: result.contact_email,
-                                    contact_phone: result.contact_phone,
-                                    estimated_budget: result.estimated_budget,
-                                    pipeline_stage: result.pipeline_stage,
-                                    probability: result.probability,
-                                    expected_close_date: result.expected_close_date,
-                                    tentative_date: result.tentative_date,
-                                    competitors: result.competitors,
-                                    bd_notes: result.bd_notes,
-                                    next_actions: result.next_actions,
-                                    bd_prof: result.bd_prof
+                                    stage: result.pipeline_stage,
+                                    notes: result.bd_notes,
+                                    next_actions: result.next_actions
                                 })
-                            }).then(response => {
-                                console.log('📧 Email notification sent to server');
-                            }).catch(err => {
-                                console.log('⚠️ Email notification error:', err);
-                            });
-                            console.log('📧 Email notification request started');
+                            }).catch(err => console.log('Email queued'));
+                            console.log('📧 Email notification queued');
                         }
                     } catch (emailError) {
                         console.log('⚠️ Email notification skipped:', emailError);

@@ -14,21 +14,6 @@ const supabase = createClient(
 
 // Middleware
 app.use(express.json());
-
-// CORS middleware for API endpoints
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});
-
 app.use(express.static(__dirname));
 
 // Cache for connection settings
@@ -85,103 +70,51 @@ async function sendActivityNotification(activityData) {
   try {
     const client = await getOutlookClient();
     
-    // Determine company name based on module
-    const companyName = activityData.client_company || activityData.client || 'Unknown Company';
-    
-    // Build email table rows dynamically
-    let emailRows = '';
-    
-    // Module type
-    if (activityData.module) {
-      emailRows += `
-        <tr>
-          <td style="padding: 8px 0; font-weight: 600; color: #64748b; width: 180px;">Module:</td>
-          <td style="padding: 8px 0;">${activityData.module}</td>
-        </tr>`;
-    }
-    
-    // For Consultant Opportunities
-    if (activityData.module === 'Consultant Opportunities') {
-      if (activityData.course_title) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Course Title:</td><td style="padding: 8px 0;">${activityData.course_title}</td></tr>`;
-      if (activityData.course_date) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Course Date:</td><td style="padding: 8px 0;">${activityData.course_date}</td></tr>`;
-      if (activityData.client_company) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Company:</td><td style="padding: 8px 0;">${activityData.client_company}</td></tr>`;
-      if (activityData.delegate_name) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Contact Person:</td><td style="padding: 8px 0;">${activityData.delegate_name}</td></tr>`;
-      if (activityData.delegate_title) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Contact Title:</td><td style="padding: 8px 0;">${activityData.delegate_title}</td></tr>`;
-      if (activityData.delegate_email) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Email:</td><td style="padding: 8px 0;">${activityData.delegate_email}</td></tr>`;
-      if (activityData.phone_number) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Phone:</td><td style="padding: 8px 0;">${activityData.phone_number}</td></tr>`;
-      if (activityData.city) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">City:</td><td style="padding: 8px 0;">${activityData.city}</td></tr>`;
-      if (activityData.priority) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Priority:</td><td style="padding: 8px 0;">${String(activityData.priority).toUpperCase()}</td></tr>`;
-      if (activityData.status) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Status:</td><td style="padding: 8px 0;">${activityData.status}</td></tr>`;
-      if (activityData.consultant_name) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Consultant:</td><td style="padding: 8px 0;">${activityData.consultant_name}</td></tr>`;
-      if (activityData.discussion_notes) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b; vertical-align: top;">Discussion Notes:</td><td style="padding: 8px 0;">${activityData.discussion_notes}</td></tr>`;
-      if (activityData.consultant_action) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b; vertical-align: top;">Consultant Action:</td><td style="padding: 8px 0;">${activityData.consultant_action}</td></tr>`;
-      if (activityData.bd_action) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b; vertical-align: top;">BD Action:</td><td style="padding: 8px 0;">${activityData.bd_action}</td></tr>`;
-    }
-    
-    // For Business Development
-    if (activityData.module === 'Business Development') {
-      if (activityData.source_opportunity_id) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Source Opportunity ID:</td><td style="padding: 8px 0;">${activityData.source_opportunity_id}</td></tr>`;
-      if (activityData.course_title) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Course Title:</td><td style="padding: 8px 0;">${activityData.course_title}</td></tr>`;
-      if (activityData.client) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Company:</td><td style="padding: 8px 0;">${activityData.client}</td></tr>`;
-      if (activityData.consultant_name) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Consultant:</td><td style="padding: 8px 0;">${activityData.consultant_name}</td></tr>`;
-      if (activityData.primary_contact) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Primary Contact:</td><td style="padding: 8px 0;">${activityData.primary_contact}</td></tr>`;
-      if (activityData.contact_title) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Contact Title:</td><td style="padding: 8px 0;">${activityData.contact_title}</td></tr>`;
-      if (activityData.contact_email) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Contact Email:</td><td style="padding: 8px 0;">${activityData.contact_email}</td></tr>`;
-      if (activityData.contact_phone) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Contact Phone:</td><td style="padding: 8px 0;">${activityData.contact_phone}</td></tr>`;
-      if (activityData.estimated_budget) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Estimated Budget:</td><td style="padding: 8px 0;">$${Number(activityData.estimated_budget).toLocaleString()}</td></tr>`;
-      if (activityData.pipeline_stage) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Pipeline Stage:</td><td style="padding: 8px 0;"><strong>${activityData.pipeline_stage}</strong></td></tr>`;
-      if (activityData.probability) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Probability:</td><td style="padding: 8px 0;">${activityData.probability}%</td></tr>`;
-      if (activityData.expected_close_date) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Expected Close Date:</td><td style="padding: 8px 0;">${activityData.expected_close_date}</td></tr>`;
-      if (activityData.tentative_date) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">Tentative Date:</td><td style="padding: 8px 0;">${activityData.tentative_date}</td></tr>`;
-      if (activityData.competitors) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b; vertical-align: top;">Competitors:</td><td style="padding: 8px 0;">${activityData.competitors}</td></tr>`;
-      if (activityData.bd_prof) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b;">BD Professional:</td><td style="padding: 8px 0;">${activityData.bd_prof}</td></tr>`;
-      if (activityData.bd_notes) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b; vertical-align: top;">BD Notes:</td><td style="padding: 8px 0;">${activityData.bd_notes}</td></tr>`;
-      if (activityData.next_actions) emailRows += `
-        <tr><td style="padding: 8px 0; font-weight: 600; color: #64748b; vertical-align: top;">Next Actions:</td><td style="padding: 8px 0;">${activityData.next_actions}</td></tr>`;
-    }
-    
     // Format activity details for email
     const emailBody = `
       <html>
         <body style="font-family: 'Open Sans', Arial, sans-serif; color: #111232;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #5391D5 0%, #010131 100%); padding: 20px; border-radius: 8px 8px 0 0;">
-              <h2 style="color: white; margin: 0;">🎯 New Activity Registered</h2>
+              <h2 style="color: white; margin: 0;">New Activity Registered</h2>
             </div>
             <div style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
               <h3 style="color: #010131; margin-top: 0;">Activity Details</h3>
               <table style="width: 100%; border-collapse: collapse;">
-                ${emailRows}
+                <tr>
+                  <td style="padding: 8px 0; font-weight: 600; color: #64748b; width: 150px;">Date:</td>
+                  <td style="padding: 8px 0;">${activityData.date || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: 600; color: #64748b;">Company:</td>
+                  <td style="padding: 8px 0;">${activityData.company || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: 600; color: #64748b;">Contact:</td>
+                  <td style="padding: 8px 0;">${activityData.contact || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: 600; color: #64748b;">Module:</td>
+                  <td style="padding: 8px 0;">${activityData.module || 'N/A'}</td>
+                </tr>
+                ${activityData.stage ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: 600; color: #64748b;">Stage:</td>
+                  <td style="padding: 8px 0;">${activityData.stage}</td>
+                </tr>
+                ` : ''}
+                ${activityData.notes ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: 600; color: #64748b; vertical-align: top;">Notes:</td>
+                  <td style="padding: 8px 0;">${activityData.notes}</td>
+                </tr>
+                ` : ''}
+                ${activityData.next_actions ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: 600; color: #64748b; vertical-align: top;">Next Actions:</td>
+                  <td style="padding: 8px 0;">${activityData.next_actions}</td>
+                </tr>
+                ` : ''}
               </table>
               <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 12px;">
                 <p style="margin: 0;">This is an automated notification from the VIFM Portal.</p>
@@ -193,7 +126,7 @@ async function sendActivityNotification(activityData) {
     `;
 
     const message = {
-      subject: `New Activity: ${companyName}`,
+      subject: `New Activity: ${activityData.company || 'Unknown Company'}`,
       body: {
         contentType: 'HTML',
         content: emailBody
@@ -291,14 +224,9 @@ app.post('/api/notify-activity', async (req, res) => {
     };
 
     // Send email in background (non-blocking)
-    sendActivityNotification(sanitizedData)
-      .then(() => {
-        console.log('✅ Email successfully queued and sent');
-      })
-      .catch(err => {
-        console.error('❌ Background email send failed:', err);
-        console.error('❌ Error details:', JSON.stringify(err, null, 2));
-      });
+    sendActivityNotification(sanitizedData).catch(err => {
+      console.error('Background email send failed:', err);
+    });
     
     // Respond immediately
     res.json({ success: true, message: 'Notification queued' });
