@@ -17,7 +17,8 @@
     
     <!-- Pre-render Security: Hide content until authentication verified -->
     <style>
-        body { visibility: hidden !important; }
+        body:not(.auth-verified) { visibility: hidden !important; }
+        body.auth-verified { visibility: visible !important; }
         .auth-loading {
             position: fixed;
             top: 0;
