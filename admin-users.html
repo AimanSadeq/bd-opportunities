@@ -303,6 +303,26 @@
         // Initialize
         async function init() {
             try {
+                console.log('🔄 Initializing User Management...');
+                
+                // Wait for VIFMSupabase to be available
+                let attempts = 0;
+                while (!window.VIFMSupabase && attempts < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (!window.VIFMSupabase) {
+                    throw new Error('Supabase client failed to initialize');
+                }
+                
+                // Initialize Supabase
+                supabase = window.VIFMSupabase.client;
+                if (!supabase) {
+                    throw new Error('Supabase client not available');
+                }
+                console.log('✅ Supabase client initialized');
+                
                 // Load admin session
                 currentAdmin = normalizeSession();
                 if (!currentAdmin || currentAdmin.role !== 'admin') {
@@ -310,12 +330,11 @@
                     setTimeout(() => window.location.href = 'vifm-main-menu.html', 2000);
                     return;
                 }
-                
-                // Initialize Supabase
-                supabase = window.VIFMSupabase.client;
+                console.log('✅ Admin session verified:', currentAdmin.full_name);
                 
                 // Load users
                 await loadUsers();
+                console.log('✅ User Management loaded');
                 
                 // Show page
                 const loadingOverlay = document.querySelector('.auth-loading');
@@ -323,8 +342,13 @@
                 document.body.style.visibility = 'visible';
                 
             } catch (error) {
-                console.error('Initialization error:', error);
-                showMessage('error', 'Failed to initialize user management');
+                console.error('❌ Initialization error:', error);
+                showMessage('error', 'Failed to initialize user management: ' + error.message);
+                
+                // Show page anyway to display error
+                const loadingOverlay = document.querySelector('.auth-loading');
+                if (loadingOverlay) loadingOverlay.remove();
+                document.body.style.visibility = 'visible';
             }
         }
         
@@ -361,12 +385,19 @@
         // Load users from database
         async function loadUsers() {
             try {
+                console.log('📋 Loading users from database...');
+                
                 const { data: users, error } = await supabase
                     .from('profiles')
                     .select('*')
                     .order('created_at', { ascending: false });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Database error:', error);
+                    throw error;
+                }
+                
+                console.log(`✅ Loaded ${users ? users.length : 0} users`);
                 
                 const usersGrid = document.getElementById('usersGrid');
                 if (!users || users.length === 0) {
@@ -377,13 +408,13 @@
                 usersGrid.innerHTML = users.map(user => `
                     <div class="user-card">
                         <div class="user-info">
-                            <div class="user-name">${user.full_name}</div>
-                            <div class="user-email">${user.email}</div>
+                            <div class="user-name">${escapeHtml(user.full_name)}</div>
+                            <div class="user-email">${escapeHtml(user.email)}</div>
                             <span class="user-role role-${user.role}">${getRoleDisplay(user.role)}</span>
                         </div>
                         <div class="user-actions">
                             ${user.email !== currentAdmin.email ? `
-                                <button class="btn btn-sm btn-secondary" onclick="resetUserPassword('${user.email}', '${user.full_name}')">
+                                <button class="btn btn-sm btn-secondary" onclick="resetUserPassword('${escapeHtml(user.email)}', '${escapeHtml(user.full_name)}')">
                                     Reset Password
                                 </button>
                             ` : ''}
@@ -392,9 +423,19 @@
                 `).join('');
                 
             } catch (error) {
-                console.error('Error loading users:', error);
+                console.error('❌ Error loading users:', error);
                 showMessage('error', 'Failed to load users: ' + error.message);
+                
+                const usersGrid = document.getElementById('usersGrid');
+                usersGrid.innerHTML = '<p style="color: var(--error);">Error loading users. Please try refreshing the page.</p>';
             }
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // Reset user password
