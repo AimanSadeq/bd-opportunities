@@ -1,9 +1,16 @@
 const express = require('express');
 const path = require('path');
 const { Client } = require('@microsoft/microsoft-graph-client');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Initialize Supabase client for server-side auth verification
+const supabase = createClient(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_ANON_KEY || ''
+);
 
 // Middleware
 app.use(express.json());
@@ -151,9 +158,53 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API endpoint to send activity notification
+// Helper to sanitize HTML content
+function escapeHtml(text) {
+  if (!text) return '';
+  return text
+    .toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Helper to verify and decode Supabase JWT token
+async function verifyAuth(req) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    // Verify token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      console.log('❌ Token validation failed:', error?.message || 'No user');
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error('❌ Auth verification error:', error);
+    return null;
+  }
+}
+
+// API endpoint to send activity notification (authenticated)
 app.post('/api/notify-activity', async (req, res) => {
   try {
+    // Verify authentication
+    const user = await verifyAuth(req);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized - Invalid token' });
+    }
+
+    console.log(`✅ Authenticated request from user: ${user.email}`);
     const activityData = req.body;
     
     // Basic validation
@@ -161,14 +212,25 @@ app.post('/api/notify-activity', async (req, res) => {
       return res.status(400).json({ error: 'Invalid activity data' });
     }
 
-    // Send email
-    const result = await sendActivityNotification(activityData);
+    // Sanitize all input data before sending email
+    const sanitizedData = {
+      date: escapeHtml(activityData.date),
+      company: escapeHtml(activityData.company),
+      contact: escapeHtml(activityData.contact),
+      module: escapeHtml(activityData.module),
+      stage: escapeHtml(activityData.stage),
+      notes: escapeHtml(activityData.notes),
+      next_actions: escapeHtml(activityData.next_actions)
+    };
+
+    // Send email in background (non-blocking)
+    sendActivityNotification(sanitizedData).catch(err => {
+      console.error('Background email send failed:', err);
+    });
     
-    if (result.success) {
-      res.json({ success: true, message: 'Notification sent' });
-    } else {
-      res.status(500).json({ success: false, error: result.error });
-    }
+    // Respond immediately
+    res.json({ success: true, message: 'Notification queued' });
+    
   } catch (error) {
     console.error('Error in notify-activity endpoint:', error);
     res.status(500).json({ error: 'Internal server error' });

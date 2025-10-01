@@ -1219,21 +1219,27 @@
                         
                         // Send email notification to akayed@viftraining.com
                         try {
-                            await fetch('/api/notify-activity', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    date: savedOpp.course_date,
-                                    company: savedOpp.client_company,
-                                    contact: savedOpp.delegate_name,
-                                    module: 'Consultant Opportunities',
-                                    notes: savedOpp.discussion_notes,
-                                    next_actions: savedOpp.consultant_action
-                                })
-                            });
-                            debugLog('📧 Email notification sent');
+                            const session = await window.VIFMSupabase.Auth.getSession();
+                            if (session?.access_token) {
+                                fetch('/api/notify-activity', {
+                                    method: 'POST',
+                                    headers: { 
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${session.access_token}`
+                                    },
+                                    body: JSON.stringify({
+                                        date: savedOpp.course_date,
+                                        company: savedOpp.client_company,
+                                        contact: savedOpp.delegate_name,
+                                        module: 'Consultant Opportunities',
+                                        notes: savedOpp.discussion_notes,
+                                        next_actions: savedOpp.consultant_action
+                                    })
+                                }).catch(err => debugLog('Email queued'));
+                                debugLog('📧 Email notification queued');
+                            }
                         } catch (emailError) {
-                            debugLog('⚠️ Email notification failed (non-critical):', emailError);
+                            debugLog('⚠️ Email notification skipped:', emailError);
                         }
                     }
                     

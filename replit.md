@@ -23,9 +23,25 @@ The VIFM (Virginia Institute of Finance and Management) Portal is a role-based b
 - Security hardening: Only anon key exposed, no service role key in client code
 - Admin setup documentation: See ADMIN-SETUP-INSTRUCTIONS.md
 
+### ✅ Email Notification System (COMPLETED - Oct 1, 2025)
+
+**Implemented:**
+- Express server backend (server.js) replacing Python HTTP server
+- Microsoft Outlook integration via Replit connector for email sending
+- Automated email notifications to akayed@viftraining.com on activity registration
+- Email triggers in both Consultant Opportunities and Business Development modules
+- Authentication protection on API endpoints
+- HTML sanitization for email content security
+- Non-blocking email delivery for optimal UX
+
+**Email-based Access Control:**
+- akayed@viftraining.com and wael@viftraining.com restricted to BD module only
+- Consultant module completely hidden from their dashboard
+- Direct URL access blocked with automatic redirect
+
 **Next Steps Available:**
 - **Option B**: Deploy to Production - Make portal live with public URL
-- **Option C**: Complete Security Hardening - Enable RLS policies, audit logging, security headers
+- **Option C**: Complete Security Hardening - Enable RLS policies, audit logging, security headers, rate limiting
 
 ## System Architecture
 
@@ -34,6 +50,12 @@ The VIFM (Virginia Institute of Finance and Management) Portal is a role-based b
 - **Modular Design**: Separate HTML files for each role and functionality (consultant module, BD module, main dashboard)
 - **Pre-render Security**: Authentication checks executed immediately on page load before content display
 - **Role-based Routing**: Different entry points based on user roles with universal route guards
+
+### Backend Architecture
+- **Express Server**: Node.js/Express server serves static files and provides API endpoints
+- **Email Service**: Microsoft Graph API integration for transactional emails
+- **API Endpoints**: Authenticated REST endpoints for notifications and webhooks
+- **Security**: Bearer token authentication, HTML sanitization, non-blocking operations
 
 ### Authentication & Authorization
 - **Session-based Authentication**: Persistent login sessions with automatic refresh
@@ -68,9 +90,10 @@ The VIFM (Virginia Institute of Finance and Management) Portal is a role-based b
 - **@supabase/supabase-js**: Official Supabase JavaScript client for database and auth operations
 - **Google Fonts (Open Sans)**: Typography and font loading for consistent branding
 
-### Development Tools
-- **Python HTTP Server**: Local development server for static file serving
-- **Node.js**: JavaScript runtime for package management and tooling (v14.0.0+)
+### Backend Services
+- **Express.js**: Web server framework for Node.js serving static files and API endpoints
+- **Microsoft Graph Client**: Official Microsoft SDK for Outlook email integration
+- **Node.js**: JavaScript runtime environment (v14.0.0+)
 
 ### Browser APIs
 - **Web Storage API**: Session persistence and local data caching
